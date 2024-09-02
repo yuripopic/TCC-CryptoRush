@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investimentos Criados</title>
+    <link rel="stylesheet" href="css/Salvos.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body>
+    <div class="container-salvos">
+
+        <div class="funcionalidades">
+            <span class="back-to-menu" onclick="window.location.href='Menu.html'">
+                <img src="imagem/de-volta.png" alt="Voltar ao Menu">
+            </span>
+
+            <span class="sair">
+                <img src="imagem/fechar.png" alt="Sair">
+            </span>
+        </div>
+
+        <h2>INVESTIMENTOS</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th><strong>Nome do Investimento</strong></th>
+                    <th><strong>Iniciar</strong></th>
+                    <th><strong>Excluir</strong></th>
+                    <th><strong>Data e Hora de Criação</strong></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Investimento Exemplo 1</td>
+                    <td><input class="verde" type="button" value="Iniciar"></td>
+                    <td><input class="vermelho" type="button" value="Excluir"></td>
+                    <td>01/08/2024 10:00</td>
+                </tr>
+                <tr>
+                    <td>Investimento Exemplo 2</td>
+                    <td><input class="verde" type="button" value="Iniciar"></td>
+                    <td><input class="vermelho" type="button" value="Excluir"></td>
+                    <td>01/08/2024 11:00</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/Salvos.js" defer></script>
+</body>
+</html>

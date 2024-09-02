@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carteira de Investimentos</title>
+    <link rel="stylesheet" href="css/Dashboard.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body> 
+    <div class="container-dashboard">
+        <header>
+            <span class="back-to-menu" onclick="window.location.href='Menu.html'">
+                <img src="imagem/de-volta.png" alt="Voltar ao Menu">
+            </span>
+            <div class="status">
+                <span>Caixa atual: R$ 00,00</span>
+                <span>Data: 1 semana</span>
+                <span>Lucro: R$ 00,00</span>
+            </div>
+            <div class="buttons-carteira">
+                <input onclick="window.location.href='SuaCarteira.html'" type="button" value="Sua Carteira">
+                <input onclick="window.location.href='AdversarioCarteira.html'" type="button" value="Carteira Adversário">
+            </div>
+        </header>
+
+        <div class="divider-header"></div>
+
+        <div class="principal">
+            <div class="left-panel">
+                
+                <div class="dash">
+                    <img src="imagem/grafico.webp" alt="Gráfico" class="graph">
+                    <button class="advance-date">Avançar a data</button>
+                </div>
+
+                <div class="divider-dash"></div>
+
+                <div class="inputs">
+                    <div class="input-group">
+                        <label for="valor">Valor aplicado:</label>
+                        <input type="number" id="valor" placeholder="R$ 00,00">
+                    </div>
+                
+                    <div class="input-group">
+                        <label for="quantidade">Quantidade:</label>
+                        <input type="number" id="quantidade" placeholder="Quantidade">
+                    </div>
+                
+                    <div class="input-group">
+                        <label for="moeda">Criptomoeda:</label>
+                        <select id="moeda">
+                            <option value="Bitcoin">Bitcoin</option>
+                            <option value="Etherium">Etherium</option>
+                            <option value="Solana">Solana</option>
+                            <option value="BNB">BNB</option>
+                        </select>
+                    </div>
+
+                    <div class="conteudo">
+                        <input class="verde" type="button" value="Comprar">
+                        <input class="vermelho" type="button" value="Vender">
+                    </div>
+                    
+                </div>               
+            </div>
+            
+            <div class="right-panel">
+                <h3>Histórico de venda e compra</h3>
+                <div id="history"></div>
+            </div>
+
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/Dashboard.js"></script>
+</body>
+</html>

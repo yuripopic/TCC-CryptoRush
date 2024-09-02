@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carteira de Criptomoedas</title>
+    <link rel="stylesheet" href="css/Carteira.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+<body>
+    <div class="container-carteira">
+
+        <div class="back">
+            <span onclick="window.location.href='Dashboard.html'">&larr; Voltar</span>
+        </div>
+        
+        <h2>SUA CARTEIRA</h2>
+        
+        <div class="header">
+            <div class="left">
+                <span>Caixa atual: R$ 00,00</span>
+            </div>
+            <div class="center">
+                <span>Lucro: R$ 00,00</span>
+            </div>
+            <div class="right">
+                <span>Data: Semana 1</span>
+            </div>
+        </div>
+
+        <div class="patrimonio">
+            <h3>Patrimônio por categoria</h3>
+            <table>
+                <tr>
+                    <th>Bitcoin</th>
+                    <th>Ethereum</th>
+                    <th>Solana</th>
+                </tr>
+                <tr>
+                    <td>0.00%</td>
+                    <td>0.00%</td>
+                    <td>0.00%</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="rendimentos">
+            <h3>Rendimentos totais</h3>
+            <table>
+                <tr>
+                    <th>Moeda</th>
+                    <th>Valor aplicado</th>
+                    <th>Quantidade</th>
+                    <th>Var. Mensal%</th>
+                </tr>
+                <tr>
+                    <td>Bitcoin</td>
+                    <td>R$ 00,00</td>
+                    <td>0</td>
+                    <td>0.00%</td>
+                </tr>
+                <tr>
+                    <td>Ethereum</td>
+                    <td>R$ 00,00</td>
+                    <td>0</td>
+                    <td>0.00%</td>
+                </tr>
+                <tr>
+                    <td>Solana</td>
+                    <td>R$ 00,00</td>
+                    <td>0</td>
+                    <td>0.00%</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/SuaCarteira.js" defer></script>
+</body>
+</html>

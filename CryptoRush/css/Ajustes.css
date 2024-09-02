@@ -1,0 +1,119 @@
+/* --------AJUSTES--------- */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+    margin: 0;
+    padding: 5px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* height: 100vh; */
+}
+
+.container-ajustes {
+    position: relative;
+    width: 80%;
+    height: 94vh;
+    border: 1px solid #000;
+    border-radius: 20px;
+    padding: 10px;
+    background-color: #373059;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    overflow: auto;
+}
+
+.left {
+    width: 35%;
+    padding-right: 20px;
+    box-sizing: border-box;
+    position: relative; 
+    /* border-right: 1px solid #fff; */
+}
+
+.right {
+    width: 65%;
+    padding-left: 20px;
+    box-sizing: border-box;
+}
+
+.divider {
+    width: 1px;
+    background-color: #fff;
+    height: 100%;
+    position: sticky; 
+    top: 0; 
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+label {
+    color: #fff;
+}
+
+.input-group {
+    margin: 15px 0;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.input-group input,
+.input-group select {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.button {
+    text-align: center;
+    margin-top: 20px;
+}
+.button input {
+    padding: 10px 20px;
+    cursor: pointer;
+    border: none;
+    background-color: #14a514;
+    color: white;
+    border-radius: 5px;
+}
+.button input:hover {
+    background-color: #00b333;
+}
+
+.back-to-menu {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+}
+
+.back-to-menu img {
+    cursor: pointer;
+    width: 20px;
+    height: auto;
+}
+
+.sair {
+    position: absolute;
+    top: 12px;
+    right: 10px;
+}
+
+.sair img {
+    cursor: pointer;
+    width: 20px;
+    height: auto;
+}
+
+
+

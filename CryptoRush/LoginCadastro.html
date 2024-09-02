@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login/Cadastro</title>
+    <link rel="stylesheet" href="css/LoginCadastro.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+
+<body>
+    <div class="container-loginCadastro">
+
+        <div class="login">
+            <h2>LOGIN</h2>
+            <div class="input-group">
+                <label for="login-email">Email:</label>
+                <input type="email" id="login-email">
+            </div>
+            <div class="input-group">
+                <label for="login-senha">Senha:</label>
+                <input type="password" id="login-senha">
+            </div>
+            <div class="button">
+                <input type="button" value="Entrar" onclick="fazerLogin()">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="cadastro">
+            <h2>CADASTRO</h2>
+            <div class="input-group">
+                <label for="cadastro-nome">Nome:</label>
+                <input type="text" id="cadastro-nome" placeholder="Nome sobrenome">
+            </div>
+            <div class="input-group">
+                <label for="cadastro-email">Email:</label>
+                <input type="email" id="cadastro-email" placeholder="seuemail@gmail.com">
+            </div>
+            <div class="input-group">
+                <label for="cadastro-senha">Senha:</label>
+                <input type="password" id="cadastro-senha">
+            </div>
+            <div class="input-group">
+                <label for="cadastro-confirmar-senha">Confirmar senha:</label>
+                <input type="password" id="cadastro-confirmar-senha">
+            </div>
+            <div class="input-group">
+                <label for="cadastro-telefone">Telefone:</label>
+                <input type="text" id="cadastro-telefone" placeholder="(dd) xxxxx-xxxx">
+            </div>
+            <div class="input-group">
+                <label for="cadastro-data-nascimento">Data de nascimento:</label>
+                <input type="text" id="cadastro-data-nascimento" placeholder="dd/MM/aaaa">
+            </div>
+            <div class="button">
+                <input type="button" value="Confirmar" onclick="exibirNotificacao()">
+                <!-- <button onclick="limparContas()">Limpar Contas</button> -->
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/LoginCadastro.js" defer></script>
+</body>
+</html>

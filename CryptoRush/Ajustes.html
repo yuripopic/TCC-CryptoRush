@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajustes do Jogo</title>
+    <link rel="stylesheet" href="css/Ajustes.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+
+<body>
+    <div class="container-ajustes">
+
+        <div class="left">
+            <span class="back-to-menu" onclick="window.location.href='Menu.html'">
+                <img src="imagem/de-volta.png" alt="Voltar ao Menu">
+            </span>
+
+            <h2>AJUSTES DO JOGO</h2>
+            <div class="input-group">
+                <label for="nome_investimento">Nome do Investimento</label>
+                <input type="text" id="nome_investimento" name="nome_investimento">
+            </div>
+
+            <div class="input-group">
+                <label for="dificuldade">Dificuldade</label>
+                <select id="dificuldade" name="dificuldade" onchange="ajustarValores()">
+                    <option value="" selected disabled></option>
+                    <option value="facil">Fácil</option>
+                    <option value="normal">Normal</option>
+                    <option value="dificil">Difícil</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="caixa_inicial">Valor do Caixa Inicial (R$)</label>
+                <input type="text" id="caixa_inicial" name="caixa_inicial" readonly>
+            </div>
+
+            <div class="input-group">
+                <label for="assertividade_bot">Assertividade do Bot</label>
+                <input type="text" id="assertividade_bot" name="assertividade_bot" readonly>
+            </div>
+
+            <div class="input-group">
+                <label for="ano_inicio">Ano de Início</label>
+                <select id="ano_inicio" name="ano_inicio" class="year-selector">
+                    <option value="" selected disabled></option>
+                    <option value="2020">2020</option>
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                </select>
+            </div>
+
+            <div class="button">
+                <input onclick="window.location.href='Dashboard.html'" type="button" value="COMEÇAR INVESTIMENTO">
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="right">
+            <span class="sair">
+                <img src="imagem/fechar.png" alt="Sair">
+            </span>
+
+            <h2>EXPLICAÇÃO DOS CAMPOS</h2>
+            <div class="input-group">
+                <label for="Nome-investimento"><strong>Nome do Investimento:</strong> Insira o nome do seu investimento.</label>
+                <label for="Dificuldade"><strong>Dificuldade:</strong> Defina a dificuldade do jogo (Fácil, Normal, Difícil).</label>
+                <label for="Valor-inicial"><strong>Valor do Caixa Inicial:</strong> Especifique o valor inicial em reais que você terá disponível no jogo. Este valor será ajustado automaticamente com base na dificuldade.</label>
+                <label for="Assertividade-bot"><strong>Assertividade do Bot:</strong> Este campo será preenchido automaticamente com base na dificuldade selecionada: Fácil (20%), Normal (50%), Difícil (80%).</label>
+                <label for="Ano-inicio"><strong>Ano de Início:</strong> Selecione o ano em que o jogo começará. O valor deve estar entre 2020 e 2024.</label>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/Ajustes.js" defer></script>
+</body>
+</html>

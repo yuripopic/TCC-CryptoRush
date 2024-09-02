@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu do Jogo</title>
+    <link rel="stylesheet" href="css/Menu.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+</head>
+
+<body>
+    <div class="container-menu">
+
+        <div class="left">
+            <h2>CRYPTO RUSH</h2>
+            <div class="conteudo">
+                <input class="verde" onclick="window.location.href='Ajustes.html'" type="button" value="Jogar">
+                <input class="verde" onclick="window.location.href='Salvos.html'" type="button" value="Investimentos">
+                <input class="vermelho" type="button" value="Sair" onclick="fazerLogout()">
+            </div>
+        </div>
+        
+        <div class="divider"></div>
+
+        <div class="right">
+            <h2>COMO FUNCIONA O JOGO</h2>
+            <div class="conteudo">
+                <label for="Bem-vindo">Bem-vindo ao nosso jogo de investimento! Aqui você pode aprender a gerenciar seu dinheiro e fazer escolhas financeiras estratégicas. O objetivo é maximizar seu retorno sobre o investimento através de decisões acertadas em diferentes cenários.</label>
+                <label for="Instrucao">Para começar, clique no botão "Jogar" no menu à esquerda. Você será levado para a tela onde pode iniciar o jogo. Se você deseja retomar investimentos salvos, clique em "Investimentos". E se precisar sair do jogo, use o botão "Sair".</label>
+            </div>        
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/Menu.js" defer></script>
+</body>
+</html>
