@@ -44,43 +44,9 @@ function validarCampos() {
             },
             body: JSON.stringify({ saldo: caixaInicial })
         })
-        .then(response => {
-            // Verificar se a requisição foi bem-sucedida
-            if (!response.ok) {
-                throw new Error('Erro na requisição ao salvar saldo');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Se o saldo foi salvo corretamente, redirecionar para Dashboard.html
-            if (data.error) {
-                Swal.fire({
-                    title: 'Erro',
-                    text: 'Erro ao salvar o saldo: ' + data.error,
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-            } else {
-                then(() => {
-                    // Redirecionar para o Dashboard
-                    window.location.href = 'Dashboard.html';
-                });
-            }
-        })
-        .catch(error => {
-            Swal.fire({
-                title: 'Erro',
-                text: 'Erro ao salvar o saldo: ' + error,
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        });
+        window.location.href = 'Dashboard.html';
     }
 }
-
-
-
-
 
 document.addEventListener("DOMContentLoaded", function() {
     const sairBtn = document.querySelector(".sair");

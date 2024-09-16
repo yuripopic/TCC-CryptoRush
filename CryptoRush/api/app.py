@@ -14,6 +14,7 @@ def get_saldo():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 @app.route('/salvar-saldo', methods=['POST'])
 def salvar_saldo():
     try:

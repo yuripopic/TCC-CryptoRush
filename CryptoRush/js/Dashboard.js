@@ -63,6 +63,23 @@ document.addEventListener("DOMContentLoaded", function () {
     const venderButton = document.querySelector('.vermelho');
     const historyDiv = document.getElementById('history');
 
+    // Requisição para pegar o saldo atual
+    fetch('http://127.0.0.1:5000/get-saldo')
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            console.error('Erro ao buscar saldo:', data.error);
+        } else {
+            const saldoAtual = data.saldo;
+            const caixaAtualSpan = document.querySelector('.status span:first-child');
+            caixaAtualSpan.textContent = `Caixa atual: R$ ${saldoAtual.toFixed(2)}`;
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao buscar saldo:', error);
+    });
+
+
     // Função para adicionar uma transação ao histórico
     function addTransaction(type) {
         const valor = document.getElementById('valor').value;
