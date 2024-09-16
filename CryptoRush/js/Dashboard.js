@@ -6,6 +6,58 @@ if (!usuarioLogado) {
     window.location.href = 'loginCadastro.html'; // Página de login
 }
 
+function validarAplicacao() {
+    const valorAplicado = parseFloat(document.getElementById('valor_aplicado').value);
+
+    // Requisição para pegar o saldo atual
+    fetch('/get-saldo')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao buscar saldo: ' + data.error,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+                const saldo = data.saldo;
+
+                if (isNaN(valorAplicado) || valorAplicado <= 0) {
+                    Swal.fire({
+                        title: 'Atenção',
+                        text: 'Por favor, insira um valor de aplicação válido.',
+                        icon: 'warning',
+                        confirmButtonText: 'OK'
+                    });
+                } else if (valorAplicado > saldo) {
+                    Swal.fire({
+                        title: 'Saldo insuficiente',
+                        text: 'O valor aplicado excede o saldo disponível de R$' + saldo.toFixed(2),
+                        icon: 'warning',
+                        confirmButtonText: 'OK'
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Sucesso',
+                        text: 'Aplicação realizada com sucesso!',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    });
+                    // Aqui você pode continuar com a aplicação ou redirecionamento
+                }
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                title: 'Erro',
+                text: 'Erro ao buscar saldo: ' + error,
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        });
+}
+
 document.addEventListener("DOMContentLoaded", function () {
     const comprarButton = document.querySelector('.verde');
     const venderButton = document.querySelector('.vermelho');

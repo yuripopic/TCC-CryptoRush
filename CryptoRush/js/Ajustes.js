@@ -23,6 +23,65 @@ function ajustarValores() {
     }
 }
 
+function validarCampos() {
+    const dificuldade = document.getElementById('dificuldade').value;
+    const anoInicio = document.getElementById('ano_inicio').value;
+    const caixaInicial = parseFloat(document.getElementById('caixa_inicial').value.replace(/[^\d,-]/g, '').replace(',', '.'));
+
+    if (dificuldade === "" || anoInicio === "" || isNaN(caixaInicial)) {
+        Swal.fire({
+            title: 'Atenção',
+            text: 'Por favor, selecione a Dificuldade, Ano de Início e verifique o Caixa Inicial.',
+            icon: 'warning',
+            confirmButtonText: 'OK'
+        });
+    } else {
+        // Enviar o valor do caixa inicial para o backend
+        fetch('http://127.0.0.1:5000/salvar-saldo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ saldo: caixaInicial })
+        })
+        .then(response => {
+            // Verificar se a requisição foi bem-sucedida
+            if (!response.ok) {
+                throw new Error('Erro na requisição ao salvar saldo');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Se o saldo foi salvo corretamente, redirecionar para Dashboard.html
+            if (data.error) {
+                Swal.fire({
+                    title: 'Erro',
+                    text: 'Erro ao salvar o saldo: ' + data.error,
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            } else {
+                then(() => {
+                    // Redirecionar para o Dashboard
+                    window.location.href = 'Dashboard.html';
+                });
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                title: 'Erro',
+                text: 'Erro ao salvar o saldo: ' + error,
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+        });
+    }
+}
+
+
+
+
+
 document.addEventListener("DOMContentLoaded", function() {
     const sairBtn = document.querySelector(".sair");
         
