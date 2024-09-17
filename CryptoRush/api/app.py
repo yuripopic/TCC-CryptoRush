@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import csv
 
 app = Flask(__name__)
 CORS(app)
@@ -36,6 +37,23 @@ def salvar_saldo():
         return jsonify({"message": "Saldo salvo com sucesso"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/get-cotacao', methods=['GET'])
+def get_cotacao():
+    data = request.get_json()
+    moeda = data.get('moeda')
+
+    try:
+        with open('data/cotacao-atual.csv', newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                if row['moeda'] == moeda:
+                    return jsonify({'cotacao': float(row['cotacao'])})
+        return jsonify({'error': 'Criptomoeda não encontrada'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
