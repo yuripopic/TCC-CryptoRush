@@ -1,69 +1,7 @@
-
-function validarAplicacao() {
-    const valorAplicado = parseFloat(document.getElementById('valor_aplicado').value);
-
-    // Requisição para pegar o saldo atual
-    fetch('/get-saldo')
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                Swal.fire({
-                    title: 'Erro',
-                    text: 'Erro ao buscar saldo: ' + data.error,
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
-            } else {
-                const saldo = data.saldo;
-
-                if (isNaN(valorAplicado) || valorAplicado <= 0) {
-                    Swal.fire({
-                        title: 'Atenção',
-                        text: 'Por favor, insira um valor de aplicação válido.',
-                        icon: 'warning',
-                        confirmButtonText: 'OK'
-                    });
-                } else if (valorAplicado > saldo) {
-                    Swal.fire({
-                        title: 'Saldo insuficiente',
-                        text: 'O valor aplicado excede o saldo disponível de R$' + saldo.toFixed(2),
-                        icon: 'warning',
-                        confirmButtonText: 'OK'
-                    });
-                } else {
-                    Swal.fire({
-                        title: 'Sucesso',
-                        text: 'Aplicação realizada com sucesso!',
-                        icon: 'success',
-                        confirmButtonText: 'OK'
-                    });
-                    // Aqui você pode continuar com a aplicação ou redirecionamento
-                }
-            }
-        })
-        .catch(error => {
-            Swal.fire({
-                title: 'Erro',
-                text: 'Erro ao buscar saldo: ' + error,
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        });
-}
-
 document.addEventListener('DOMContentLoaded', async function () {
     const comprarButton = document.querySelector('.verde');
     const venderButton = document.querySelector('.vermelho');
     const historyDiv = document.getElementById('history');
-
-    // Verifica se o usuário está logado ao carregar a página
-    const usuarioLogado = localStorage.getItem('usuarioLogado');
-    console.log('Valor de usuarioLogado:', usuarioLogado); // Para depuração
-
-    if (usuarioLogado !== 'true') {
-        console.log('Usuário não está logado, redirecionando para a página de login...');
-        window.location.href = 'LoginCadastro.html'; // Página de login
-    }
 
     // Função para consultar o saldo
     async function getSaldo() {
@@ -81,7 +19,27 @@ document.addEventListener('DOMContentLoaded', async function () {
                 console.error('Erro ao buscar saldo:', error);
                 return null;
             });
-    }    
+    }
+
+    // Função para atualizar o saldo no backend
+    async function atualizarSaldo(novoSaldo) {
+        return fetch('http://127.0.0.1:5000/atualizar-saldo', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ novo_saldo: novoSaldo })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Erro ao atualizar saldo:', data.error);
+            } else {
+                console.log('Saldo atualizado com sucesso');
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao atualizar saldo:', error);
+        });
+    }
 
     // Atualizar o campo "Caixa atual" com o saldo
     const saldo = await getSaldo();
@@ -92,10 +50,10 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Função para consultar a cotação da criptomoeda
     function getCotacao(moeda) {
-        return fetch('/get-cotacao', {
+        return fetch('http://127.0.0.1:5000/get-cotacao', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ moeda: moeda })
+            body: JSON.stringify({ moeda: moeda })  // Envia a moeda selecionada
         })
         .then(response => response.json())
         .then(data => {
@@ -103,14 +61,14 @@ document.addEventListener('DOMContentLoaded', async function () {
                 console.error('Erro ao buscar cotação:', data.error);
                 return null;
             } else {
-                return data.cotacao;
+                return data.cotacao;  // Retorna a cotação
             }
         })
         .catch(error => {
             console.error('Erro ao buscar cotação:', error);
             return null;
         });
-    }
+    }    
 
     // Função para calcular a quantidade de criptomoeda que pode ser comprada
     function calcularQuantidade(valorAplicado, cotacao) {
@@ -164,9 +122,17 @@ document.addEventListener('DOMContentLoaded', async function () {
             icon: 'success',
             confirmButtonText: 'OK'
         });
-
-        // Atualiza o histórico da transação
+        
+        // Adiciona a transação ao histórico após a compra
         addTransaction('Compra', valorAplicado, quantidade, moedaSelecionada);
+        
+        // Atualiza o saldo
+        const novoSaldo = saldo - valorAplicado;
+        await atualizarSaldo(novoSaldo); // Subtrai o valor aplicado e atualiza o saldo
+
+        // Atualiza o campo "Caixa atual" com o novo saldo
+        const caixaAtualSpan = document.querySelector('.status span:first-child');
+        caixaAtualSpan.textContent = `Caixa atual: R$ ${novoSaldo.toFixed(2)}`;
     }
 
     // Função para adicionar uma transação ao histórico
@@ -179,5 +145,3 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Adiciona evento de clique para o botão "Comprar"
     comprarButton.addEventListener('click', validarCompra);
 });
-
-

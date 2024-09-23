@@ -101,14 +101,22 @@ header {
     padding-left: 5px;
 }
 
-#history {
+/* #history {
     background-color: #373059;
-    /* border: 1px solid #ccc; */
+    border: 1px solid #ccc; --> MANTER COMENTADO
     padding: 10px;
     margin-top: 5px;
     height: 460px;
     overflow-y: auto;
     border-radius: 10px;
+} */
+
+#history {
+    max-height: 200px; /* Define uma altura máxima */
+    overflow-y: auto;  /* Adiciona rolagem se o conteúdo ultrapassar a altura */
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 10px;
 }
 
 .inputs {
