@@ -112,10 +112,10 @@ header {
 } */
 
 #history {
-    max-height: 200px; /* Define uma altura máxima */
-    overflow-y: auto;  /* Adiciona rolagem se o conteúdo ultrapassar a altura */
-    border: 1px solid #ccc;
+    max-height: 300px;  /* Define uma altura máxima */
+    overflow-y: auto;   /* Adiciona a rolagem vertical */
     padding: 10px;
+    border: 1px solid #ccc;
     margin-top: 10px;
 }
 
