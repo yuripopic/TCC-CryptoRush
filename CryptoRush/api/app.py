@@ -135,6 +135,38 @@ def ler_quantidade():
                 quantidades[moeda] = float(quantidade)
     return quantidades
 
+# Função para ler as cotações atuais das criptomoedas
+def ler_cotacoes():
+    cotacoes = {}
+    if os.path.exists(COTACAO_PATH):
+        with open(COTACAO_PATH, 'r') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                moeda, cotacao = row
+                cotacoes[moeda] = float(cotacao)
+    return cotacoes
+
+# Rota para retornar as quantidades e valores totais
+@app.route('/get-rendimentos', methods=['GET'])
+def get_rendimentos():
+    try:
+        quantidades = ler_quantidades()
+        cotacoes = ler_cotacoes()
+
+        rendimentos = []
+        for moeda, quantidade in quantidades.items():
+            cotacao_atual = cotacoes.get(moeda, 0)
+            valor_total = quantidade * cotacao_atual
+            rendimentos.append({
+                'moeda': moeda,
+                'quantidade': quantidade,
+                'valor_aplicado': valor_total
+            })
+
+        return jsonify(rendimentos), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # Função para salvar as quantidades atualizadas no arquivo quantidade.txt
 def salvar_quantidade(quantidades):
     with open(QUANTIDADE_PATH, 'w', newline='') as file:
