@@ -70,53 +70,10 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }    
 
-// Função para calcular a quantidade de criptomoeda que pode ser comprada
-function calcularQuantidade(valorAplicado, cotacao) {
-    return valorAplicado / cotacao;
-}
-
-// Função para obter a cotação (exemplo básico)
-async function getCotacao(moeda) {
-    const cotacoes = {
-        Bitcoin: 15000, // Valores de exemplo, você pode substituir pelos valores reais
-        Etherium: 1000,
-        Solana: 200,
-        BNB: 300
-    };
-    return cotacoes[moeda] || null; // Retorna null se a moeda não for encontrada
-}
-
-// Função para atualizar a quantidade ao preencher o valor aplicado
-async function atualizarQuantidade() {
-    try {
-        const valorAplicado = parseFloat(document.getElementById('valor').value);
-        const moedaSelecionada = document.getElementById('moeda').value;
-
-        if (!isNaN(valorAplicado) && valorAplicado > 0) {
-            const cotacao = await getCotacao(moedaSelecionada);
-
-            if (cotacao && !isNaN(cotacao)) {
-                const quantidade = calcularQuantidade(valorAplicado, cotacao);
-                document.getElementById('quantidade').value = quantidade.toFixed(8); // Atualiza o campo de quantidade
-            } else {
-                console.error("Erro ao obter a cotação da moeda. Cotação inválida.");
-                document.getElementById('quantidade').value = ''; // Limpa o campo
-            }
-        } else {
-            document.getElementById('quantidade').value = ''; // Limpa o campo se o valor aplicado for inválido
-        }
-    } catch (error) {
-        console.error("Erro ao atualizar quantidade:", error);
-        document.getElementById('quantidade').value = ''; // Limpa o campo em caso de erro
+    // Função para calcular a quantidade de criptomoeda que pode ser comprada
+    function calcularQuantidade(valorAplicado, cotacao) {
+        return valorAplicado / cotacao;
     }
-}
-
-// Adiciona o evento input ao campo de valor aplicado
-document.getElementById('valor').addEventListener('input', atualizarQuantidade);
-document.getElementById('moeda').addEventListener('change', atualizarQuantidade); // Atualiza a quantidade ao selecionar uma moeda
-
-
-
 
     // Função para validar a compra
     async function validarCompra() {
