@@ -75,70 +75,68 @@ document.addEventListener('DOMContentLoaded', async function () {
         return valorAplicado / cotacao;
     }
 
-    // Função para validar a compra de criptomoeda
-async function validarCompra() {
-    const valorAplicado = parseFloat(document.getElementById('valor').value);
-    const moedaSelecionada = document.getElementById('moeda').value;
+    // Função para validar a compra
+    async function validarCompra() {
+        const valorAplicado = parseFloat(document.getElementById('valor').value);
+        const moedaSelecionada = document.getElementById('moeda').value;
 
-    if (isNaN(valorAplicado) || valorAplicado <= 0) {
+        if (isNaN(valorAplicado) || valorAplicado <= 0) {
+            Swal.fire({
+                title: 'Atenção',
+                text: 'Por favor, insira um valor de aplicação válido.',
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        const saldo = await getSaldo();
+        const cotacao = await getCotacao(moedaSelecionada);
+
+        if (saldo === null || cotacao === null) {
+            Swal.fire({
+                title: 'Erro',
+                text: 'Erro ao buscar saldo ou cotação.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        if (valorAplicado > saldo) {
+            Swal.fire({
+                title: 'Saldo insuficiente',
+                text: `O valor aplicado excede o saldo disponível de R$ ${saldo.toFixed(2)}`,
+                icon: 'warning',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        const quantidade = calcularQuantidade(valorAplicado, cotacao);
+        document.getElementById('quantidade').value = quantidade.toFixed(8); // Exibe a quantidade calculada
+
         Swal.fire({
-            title: 'Atenção',
-            text: 'Por favor, insira um valor de aplicação válido.',
-            icon: 'warning',
+            title: 'Sucesso',
+            text: `Compra realizada! Você comprou ${quantidade.toFixed(8)} de ${moedaSelecionada} por R$ ${valorAplicado.toFixed(2)}`,
+            icon: 'success',
             confirmButtonText: 'OK'
+        }).then(async (result) => {
+            if (result.isConfirmed) { // Verifica se o botão "OK" foi pressionado
+                // Adiciona a transação ao histórico após a compra
+                addTransaction('Compra', valorAplicado, quantidade, moedaSelecionada);
+
+                // Atualiza o saldo
+                const novoSaldo = saldo - valorAplicado;
+                await atualizarSaldo(novoSaldo); // Subtrai o valor aplicado e atualiza o saldo
+
+                // Atualiza o campo "Caixa atual" com o novo saldo
+                const caixaAtualSpan = document.querySelector('.status span:first-child');
+                caixaAtualSpan.textContent = `Caixa atual: R$ ${novoSaldo.toFixed(2)}`;
+            }
         });
-        return;
     }
 
-    const saldo = await getSaldo();
-    const cotacao = await getCotacao(moedaSelecionada);
-
-    if (saldo === null || cotacao === null) {
-        Swal.fire({
-            title: 'Erro',
-            text: 'Erro ao buscar saldo ou cotação.',
-            icon: 'error',
-            confirmButtonText: 'OK'
-        });
-        return;
-    }
-
-    if (valorAplicado > saldo) {
-        Swal.fire({
-            title: 'Saldo insuficiente',
-            text: `O valor aplicado excede o saldo disponível de R$ ${saldo.toFixed(2)}`,
-            icon: 'warning',
-            confirmButtonText: 'OK'
-        });
-        return;
-    }
-
-    // Calcula a quantidade comprada com base no valor aplicado
-    const quantidadeComprada = valorAplicado / cotacao;
-
-    // Atualiza o saldo após a compra
-    const novoSaldo = saldo - valorAplicado;
-    await atualizarSaldo(novoSaldo);
-
-    Swal.fire({
-        title: 'Sucesso',
-        text: `Compra realizada! Você comprou ${quantidadeComprada.toFixed(8)} de ${moedaSelecionada} por R$ ${valorAplicado.toFixed(2)}`,
-        icon: 'success',
-        confirmButtonText: 'OK',
-        timer: 3000,
-        timerProgressBar: true
-    });
-
-    // Atualiza a quantidade de criptomoeda no backend após a compra
-    atualizarQuantidade('Compra', quantidadeComprada, moedaSelecionada);
-
-    // Atualiza o histórico
-    addTransaction('Compra', valorAplicado, quantidadeComprada, moedaSelecionada);
-
-    // Atualiza o campo "Caixa atual" com o novo saldo
-    const caixaAtualSpan = document.querySelector('.status span:first-child');
-    caixaAtualSpan.textContent = `Caixa atual: R$ ${novoSaldo.toFixed(2)}`;
-}
 
     // Função para validar a venda de criptomoeda
 async function validarVenda() {
