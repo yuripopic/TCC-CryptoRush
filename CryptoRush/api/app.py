@@ -124,8 +124,8 @@ def carregar_transacoes():
         return jsonify({"error": str(e)}), 500
     
 
-# Função para ler o arquivo quantidade.txt e retornar as quantidades atuais
-def ler_quantidade():
+# Função para ler o arquivo quantidade.txt
+def ler_quantidades():
     quantidades = {}
     if os.path.exists(QUANTIDADE_PATH):
         with open(QUANTIDADE_PATH, 'r') as file:
@@ -135,8 +135,89 @@ def ler_quantidade():
                 quantidades[moeda] = float(quantidade)
     return quantidades
 
+# Função para ler as cotações atuais das criptomoedas
+def ler_cotacoes():
+    cotacoes = {}
+    if os.path.exists(COTACAO_PATH):
+        with open(COTACAO_PATH, 'r') as file:
+            reader = csv.reader(file)
+            next(reader)  # Ignora o cabeçalho do arquivo CSV
+            for row in reader:
+                moeda, cotacao = row
+                cotacoes[moeda] = float(cotacao)  # Converte o valor da cotação para float
+    return cotacoes
+
+
+# Função para ler o arquivo transacoes.csv
+def ler_transacoes():
+    transacoes = []
+    if os.path.exists(TRANSACTIONS_PATH):
+        with open(TRANSACTIONS_PATH, 'r') as file:
+            reader = csv.reader(file)
+            next(reader)  # Ignora o cabeçalho, se houver
+            for row in reader:
+                tipo, valor, quantidade, moeda = row
+                transacoes.append({
+                    'tipo': tipo,
+                    'valor': float(valor),
+                    'quantidade': float(quantidade),
+                    'moeda': moeda
+                })
+    return transacoes
+
+# Função para ler o saldo do arquivo saldo.txt
+def ler_saldo():
+    saldo = 0
+    if os.path.exists(SALDO_PATH):
+        with open(SALDO_PATH, 'r') as file:
+            saldo = float(file.read().strip())
+    return saldo
+
+# Função para ler o arquivo transacoes.csv e calcular o valor aplicado e a quantidade por moeda
+def calcular_valor_e_quantidade():
+    transacoes = {}
+    if os.path.exists(TRANSACTIONS_PATH):
+        with open(TRANSACTIONS_PATH, 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                moeda = row['moeda']
+                tipo = row['tipo']
+                valor = float(row['valor'])
+                quantidade = float(row['quantidade'])
+                
+                if moeda not in transacoes:
+                    transacoes[moeda] = {'valor': 0, 'quantidade': 0}
+
+                # Somar se for uma compra e subtrair se for uma venda
+                if tipo == 'Compra':
+                    transacoes[moeda]['valor'] += valor
+                    transacoes[moeda]['quantidade'] += quantidade
+                elif tipo == 'Venda':
+                    transacoes[moeda]['valor'] -= valor
+                    transacoes[moeda]['quantidade'] -= quantidade
+
+    return transacoes
+
+# Rota para retornar os rendimentos e quantidade
+@app.route('/get-rendimentos', methods=['GET'])
+def get_rendimentos():
+    try:
+        transacoes = calcular_valor_e_quantidade()
+
+        rendimentos = []
+        for moeda, dados in transacoes.items():
+            rendimentos.append({
+                'moeda': moeda,
+                'valor_aplicado': dados['valor'],
+                'quantidade': dados['quantidade']
+            })
+
+        return jsonify(rendimentos), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # Função para salvar as quantidades atualizadas no arquivo quantidade.txt
-def salvar_quantidade(quantidades):
+def salvar_quantidades(quantidades):
     with open(QUANTIDADE_PATH, 'w', newline='') as file:
         writer = csv.writer(file)
         for moeda, quantidade in quantidades.items():
@@ -151,29 +232,60 @@ def atualizar_quantidade():
         quantidade = float(data.get('quantidade'))
         tipo = data.get('tipo')  # Pode ser 'Compra' ou 'Venda'
 
-        if not all([moeda, quantidade, tipo]):
-            return jsonify({"error": "Dados incompletos para atualizar quantidade"}), 400
+        # Ler quantidades atuais
+        quantidades = ler_quantidades()
 
-        # Lê o arquivo quantidade.txt
-        quantidades = ler_quantidade()
-
-        # Valida a quantidade no caso de uma venda
-        if tipo == 'Venda':
-            if moeda not in quantidades or quantidades[moeda] < quantidade:
-                return jsonify({"error": "Quantidade insuficiente para venda"}), 400
-
-        # Atualiza a quantidade baseada no tipo de transação
+        # Se for uma compra, adicionar a quantidade
         if tipo == 'Compra':
             quantidades[moeda] = quantidades.get(moeda, 0) + quantidade
+        # Se for uma venda, subtrair a quantidade
         elif tipo == 'Venda':
-            quantidades[moeda] = quantidades.get(moeda, 0) - quantidade
-            if quantidades[moeda] < 0:
-                quantidades[moeda] = 0  # Garante que não tenha valores negativos
+            if moeda in quantidades and quantidades[moeda] >= quantidade:
+                quantidades[moeda] -= quantidade
+                if quantidades[moeda] < 0:
+                    quantidades[moeda] = 0  # Garante que não fique negativa
+            else:
+                return jsonify({"error": "Quantidade insuficiente para venda"}), 400
 
-        # Salva as novas quantidades no arquivo
-        salvar_quantidade(quantidades)
+        # Salvar quantidades atualizadas no arquivo quantidade.txt
+        salvar_quantidades(quantidades)
 
         return jsonify({"message": "Quantidade atualizada com sucesso"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+# Função para calcular o patrimônio total e os percentuais de cada moeda
+@app.route('/get-patrimonio', methods=['GET'])
+def get_patrimonio():
+    try:
+        # Lê o saldo do caixa atual
+        saldo_atual = ler_saldo()
+
+        # Lê os valores investidos e quantidades
+        transacoes = calcular_valor_e_quantidade()
+
+        # Calcula o total de investimentos
+        total_investido = sum([dados['valor'] for dados in transacoes.values()])
+
+        # Calcula o patrimônio total (caixa + total investido)
+        patrimonio_total = saldo_atual + total_investido
+
+        # Calcula o percentual de cada moeda
+        patrimonio = []
+        for moeda, dados in transacoes.items():
+            percentual = (dados['valor'] / patrimonio_total) * 100 if patrimonio_total > 0 else 0
+            patrimonio.append({
+                'moeda': moeda,
+                'valor_aplicado': dados['valor'],
+                'percentual': percentual,
+                'quantidade': dados['quantidade']
+            })
+
+        return jsonify({
+            'patrimonio_total': patrimonio_total,
+            'saldo_atual': saldo_atual,
+            'patrimonio': patrimonio
+        }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
