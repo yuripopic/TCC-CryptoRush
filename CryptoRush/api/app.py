@@ -250,12 +250,40 @@ def atualizar_quantidade():
                 return jsonify({"error": "Quantidade insuficiente para venda"}), 400
 
         # Salvar quantidades atualizadas no arquivo quantidade.txt
+        print(quantidades)
         salvar_quantidades(quantidades)
 
         return jsonify({"message": "Quantidade atualizada com sucesso"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-    
+
+@app.route('/validar-quantidade', methods=['POST'])
+def validar_quantidade():
+    try:
+        data = request.get_json()
+        moeda = data.get('moeda')
+        quantidade = float(data.get('quantidade'))
+        tipo = data.get('tipo')  # Pode ser 'Compra' ou 'Venda'
+
+        # Ler quantidades atuais
+        quantidades = ler_quantidades()
+
+        # Se for uma compra, adicionar a quantidade
+        if tipo == 'Compra':
+            quantidades[moeda] = quantidades.get(moeda, 0) + quantidade
+        # Se for uma venda, subtrair a quantidade
+        elif tipo == 'Venda':
+            if moeda in quantidades and quantidades[moeda] >= quantidade:
+                quantidades[moeda] -= quantidade
+                if quantidades[moeda] < 0:
+                    quantidades[moeda] = 0  # Garante que não fique negativa
+            else:
+                return jsonify({"error": "Constatada quantidade insuficiente para venda"}), 400
+
+        return jsonify({"message": "Quantidade validada com sucesso"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # Função para calcular o patrimônio total e os percentuais de cada moeda
 @app.route('/get-patrimonio', methods=['GET'])
 def get_patrimonio():

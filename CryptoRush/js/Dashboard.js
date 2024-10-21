@@ -240,7 +240,7 @@ async function validarVenda() {
     });
 
     // Atualiza a quantidade de criptomoeda no backend após a venda
-    atualizarQuantidade('Venda', quantidadeVendida, moedaSelecionada);
+    //atualizarQuantidade('Venda', quantidadeVendida, moedaSelecionada);
 
     // Atualiza o histórico
     addTransaction('Venda', valorVendido, quantidadeVendida, moedaSelecionada);
@@ -253,7 +253,7 @@ async function validarVenda() {
 
 // Função para validar a quantidade de criptomoeda disponível no backend
 async function validarQuantidade(tipo, quantidade, moeda) {
-    return fetch('http://127.0.0.1:5000/atualizar-quantidade', {
+    return fetch('http://127.0.0.1:5000/validar-quantidade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tipo: tipo, quantidade: quantidade, moeda: moeda })
