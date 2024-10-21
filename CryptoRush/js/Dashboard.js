@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const comprarButton = document.querySelector('.verde');
     const venderButton = document.querySelector('.vermelho');
     const historyDiv = document.getElementById('history');
+    const advanceDateButton = document.querySelector('.advance-date');
     
     // Função para consultar o saldo
     async function getSaldo() {
@@ -20,6 +21,52 @@ document.addEventListener('DOMContentLoaded', async function () {
                 return null;
             });
     }
+
+    // Função para consultar a semana atual
+    async function getSemana() {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/get-semana', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            if (data.error) {
+                console.error('Erro ao buscar a semana:', data.error);
+            } else {
+                console.log('Semana atual:', data.semana);
+                const dataSpan = document.querySelector('.status span:nth-child(2)');
+                dataSpan.textContent = `Data: ${data.semana} semana`;
+            }
+        } catch (error) {
+            console.error('Erro ao buscar a semana:', error);
+        }
+    }
+    
+    // Função para avançar a data
+    async function avancarData() {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/avancar-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            if (data.error) {
+                console.error('Erro ao avançar a data:', data.error);
+            } else {
+                console.log('Data avançada com sucesso:', data.message);
+                const dataSpan = document.querySelector('.status span:nth-child(2)');
+                dataSpan.textContent = `Data: ${data.semana} semana`;
+            }
+        } catch (error) {
+            console.error('Erro ao avançar a data:', error);
+        }
+    }
+
+    // Adiciona evento de clique ao botão "Avançar a data"
+    advanceDateButton.addEventListener('click', avancarData);
+
+    // Chama a função para carregar a semana quando a página for carregada
+    await getSemana();
 
     // Função para atualizar o saldo no backend
     async function atualizarSaldo(novoSaldo) {
@@ -189,9 +236,7 @@ async function validarVenda() {
         title: 'Sucesso',
         text: `Venda realizada! Você vendeu ${quantidadeVendida.toFixed(8)} de ${moedaSelecionada} por R$ ${valorVendido.toFixed(2)}`,
         icon: 'success',
-        confirmButtonText: 'OK',
-        timer: 3000,
-        timerProgressBar: true
+        confirmButtonText: 'OK'
     });
 
     // Atualiza a quantidade de criptomoeda no backend após a venda

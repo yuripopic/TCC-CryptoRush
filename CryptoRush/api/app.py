@@ -10,8 +10,10 @@ CORS(app)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SALDO_PATH = os.path.join(BASE_DIR, 'data', 'saldo.txt')
 COTACAO_PATH = os.path.join(BASE_DIR, 'data/cotacao-atual.csv')
-TRANSACTIONS_PATH = os.path.join(BASE_DIR, 'data/transacoes.csv')
+TRANSACOES_PATH = os.path.join(BASE_DIR, 'data/transacoes.csv')
 QUANTIDADE_PATH = os.path.join(BASE_DIR, 'data/quantidade.txt')
+ANO_PATH = os.path.join(BASE_DIR, 'data/ano.txt')
+SEMANA_PATH = os.path.join(BASE_DIR, 'data/semana.txt')
 
 @app.route('/get-saldo', methods=['GET'])
 def get_saldo():
@@ -96,7 +98,7 @@ def registrar_transacao():
             return jsonify({"error": "Dados incompletos para registrar transação"}), 400
 
         # Escreve a transação no arquivo CSV
-        with open(TRANSACTIONS_PATH, mode='a', newline='') as file:
+        with open(TRANSACOES_PATH, mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([tipo, valor, quantidade, moeda])
 
@@ -110,7 +112,7 @@ def registrar_transacao():
 def carregar_transacoes():
     try:
         transacoes = []
-        with open(TRANSACTIONS_PATH, mode='r') as file:
+        with open(TRANSACOES_PATH, mode='r') as file:
             reader = csv.reader(file)
             for row in reader:
                 transacoes.append({
@@ -151,8 +153,8 @@ def ler_cotacoes():
 # Função para ler o arquivo transacoes.csv
 def ler_transacoes():
     transacoes = []
-    if os.path.exists(TRANSACTIONS_PATH):
-        with open(TRANSACTIONS_PATH, 'r') as file:
+    if os.path.exists(TRANSACOES_PATH):
+        with open(TRANSACOES_PATH, 'r') as file:
             reader = csv.reader(file)
             next(reader)  # Ignora o cabeçalho, se houver
             for row in reader:
@@ -176,8 +178,8 @@ def ler_saldo():
 # Função para ler o arquivo transacoes.csv e calcular o valor aplicado e a quantidade por moeda
 def calcular_valor_e_quantidade():
     transacoes = {}
-    if os.path.exists(TRANSACTIONS_PATH):
-        with open(TRANSACTIONS_PATH, 'r') as file:
+    if os.path.exists(TRANSACOES_PATH):
+        with open(TRANSACOES_PATH, 'r') as file:
             reader = csv.DictReader(file)
             for row in reader:
                 moeda = row['moeda']
@@ -286,6 +288,86 @@ def get_patrimonio():
             'saldo_atual': saldo_atual,
             'patrimonio': patrimonio
         }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/salvar-ano', methods=['POST'])
+def salvar_ano():
+    try:
+        data = request.get_json()
+        ano = data.get('ano')
+
+        # Grava o ano no arquivo ano.txt
+        with open(ANO_PATH, 'w') as file:
+            file.write(str(ano))
+
+        return jsonify({"message": "Ano salvo com sucesso"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Função para limpar os arquivos quantidade.txt e transacoes.csv
+@app.route('/limpar-arquivos', methods=['POST'])
+def limpar_arquivos():
+    try:
+        # Limpa o arquivo quantidade.txt
+        open(QUANTIDADE_PATH, 'w').close()
+
+        # Limpa o arquivo transacoes.csv, mas preserva o cabeçalho
+        with open(TRANSACOES_PATH, 'w', newline='') as file:
+            file.write('tipo,valor,quantidade,moeda\n')  # Cabeçalho preservado
+
+        return jsonify({"message": "Arquivos limpos com sucesso"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Função para salvar o valor 1 no arquivo semana.txt
+@app.route('/salvar-semana', methods=['POST'])
+def salvar_semana():
+    try:
+        data = request.get_json()
+        semana = data.get('semana')
+
+        # Grava o valor 1 no arquivo semana.txt
+        with open(SEMANA_PATH, 'w') as file:
+            file.write(str(semana))
+
+        return jsonify({"message": "Semana salva com sucesso"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+# Função para buscar a semana atual no arquivo semana.txt
+@app.route('/get-semana', methods=['GET'])
+def get_semana():
+    try:
+        if os.path.exists(SEMANA_PATH):
+            with open(SEMANA_PATH, 'r') as file:
+                semana = int(file.read().strip())
+        else:
+            semana = 1  # Se o arquivo não existir, começa na semana 1
+
+        return jsonify({"semana": semana}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Função para avançar a data e incrementar o valor no arquivo semana.txt
+@app.route('/avancar-data', methods=['POST'])
+def avancar_data():
+    try:
+        # Lê o valor atual da semana
+        if os.path.exists(SEMANA_PATH):
+            with open(SEMANA_PATH, 'r') as file:
+                semana = int(file.read().strip())
+        else:
+            semana = 1  # Se o arquivo não existir, começa na semana 1
+
+        # Incrementa a semana
+        semana += 1
+
+        # Salva o novo valor no arquivo semana.txt
+        with open(SEMANA_PATH, 'w') as file:
+            file.write(str(semana))
+
+        return jsonify({"message": "Data avançada com sucesso", "semana": semana}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

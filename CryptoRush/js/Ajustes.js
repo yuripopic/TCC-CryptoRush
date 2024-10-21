@@ -1,4 +1,3 @@
-
 function ajustarValores() {
     const dificuldade = document.getElementById('dificuldade').value;
     const caixaInicial = document.getElementById('caixa_inicial');
@@ -21,6 +20,7 @@ function validarCampos() {
     const anoInicio = document.getElementById('ano_inicio').value;
     const caixaInicial = parseFloat(document.getElementById('caixa_inicial').value.replace(/[^\d,-]/g, '').replace(',', '.'));
 
+    // Verifica se todos os campos necessários estão preenchidos corretamente
     if (dificuldade === "" || anoInicio === "" || isNaN(caixaInicial)) {
         Swal.fire({
             title: 'Atenção',
@@ -29,7 +29,27 @@ function validarCampos() {
             confirmButtonText: 'OK'
         });
     } else {
-        // Enviar o valor do caixa inicial para o backend
+        // Salvar o ano selecionado no backend
+        fetch('http://127.0.0.1:5000/salvar-ano', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ ano: anoInicio })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Erro ao salvar o ano:', data.error);
+            } else {
+                console.log('Ano salvo com sucesso:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao salvar o ano:', error);
+        });
+
+        // Salvar o valor do caixa inicial no backend
         fetch('http://127.0.0.1:5000/salvar-saldo', {
             method: 'POST',
             headers: {
@@ -37,7 +57,48 @@ function validarCampos() {
             },
             body: JSON.stringify({ saldo: caixaInicial })
         })
-        window.location.href = 'Dashboard.html';
+        .then(() => {
+            // Deletar os dados de quantidade.txt e transacoes.csv
+            fetch('http://127.0.0.1:5000/limpar-arquivos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Erro ao limpar arquivos:', data.error);
+                } else {
+                    console.log('Arquivos limpos com sucesso:', data.message);
+                }
+                // Redireciona para o Dashboard após salvar e limpar arquivos
+                window.location.href = 'Dashboard.html';
+            })
+            .catch(error => {
+                console.error('Erro ao limpar arquivos:', error);
+            });
+
+            // Salvar o valor 1 no arquivo semana.txt
+            fetch('http://127.0.0.1:5000/salvar-semana', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ semana: 1 })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Erro ao salvar semana:', data.error);
+                } else {
+                    console.log('Semana salva com sucesso:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao salvar semana:', error);
+            });
+        });
     }
 }
 

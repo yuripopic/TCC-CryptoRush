@@ -16,14 +16,27 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
+    // Função para buscar a semana atual e atualizar o campo de data
+    async function getSemana() {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/get-semana');
+            const data = await response.json();
+            if (data.error) {
+                console.error('Erro ao buscar a semana:', data.error);
+            } else {
+                const dataSpan = document.querySelector('.right span');
+                dataSpan.textContent = `Data: Semana ${data.semana}`;
+            }
+        } catch (error) {
+            console.error('Erro ao buscar a semana:', error);
+        }
+    }
+
     // Função para buscar os rendimentos do backend e preencher a tabela
     async function getRendimentos() {
         try {
             const response = await fetch('http://127.0.0.1:5000/get-rendimentos');
             const rendimentos = await response.json();
-    
-            // Adicionar log para verificar os dados retornados
-            console.log('Dados de rendimentos recebidos:', rendimentos);
     
             const tabelaRendimentos = document.querySelector('.rendimentos table');
     
@@ -37,7 +50,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 </tr>
             `;
     
-            // Garante que rendimentos seja uma array antes de usar forEach
             if (Array.isArray(rendimentos)) {
                 rendimentos.forEach(rendimento => {
                     const row = document.createElement('tr');
@@ -63,8 +75,6 @@ document.addEventListener("DOMContentLoaded", function() {
             const response = await fetch('http://127.0.0.1:5000/get-patrimonio');
             const data = await response.json();
 
-            console.log('Dados de patrimônio recebidos:', data);
-
             const tabelaPatrimonio = document.querySelector('.patrimonio table');
 
             // Limpa as linhas antigas, exceto o cabeçalho
@@ -75,7 +85,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 </tr>
             `;
 
-            // Adiciona os dados de cada moeda (apenas percentual agora)
             data.patrimonio.forEach(item => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -90,8 +99,9 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     }
 
-    // Chama a função ao carregar a página
+    // Chama as funções ao carregar a página
     getSaldo();
-    getPatrimonio()
+    getSemana();  // Busca e atualiza a semana
+    getPatrimonio();
     getRendimentos();
 });
