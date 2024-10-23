@@ -10,7 +10,7 @@ function ajustarValores() {
         caixaInicial.value = '50.000,00';
         assertividadeBot.value = '50%';
     } else if (dificuldade === 'dificil') {
-        caixaInicial.value = '3.000,00';
+        caixaInicial.value = '10.000,00';
         assertividadeBot.value = '80%';
     }
 }
