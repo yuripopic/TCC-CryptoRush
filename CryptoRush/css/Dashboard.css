@@ -32,10 +32,10 @@ h3{
 }
 
 .dash {
-    margin-top: 1%;
+    /* margin-top: 1%; */
     display: flex;
-    align-items: center; /* Centraliza verticalmente o conteúdo da div */
-    justify-content: space-between; /* Coloca a imagem à esquerda e o botão à direita */
+    align-items: center; 
+    justify-content: space-between; 
 }
 
 #performanceChart {
@@ -51,11 +51,11 @@ h3{
 }
 
 .advance-date {
-    margin-left: 20px; /* Espaço entre a imagem e o botão */
+    margin-left: 20px;
     padding: 10px 20px;
     border: none;
     border-radius: 5px;
-    /* cursor: pointer; */
+    cursor: pointer;
     background-color: #4CAF50; 
     color: white;
     text-align: center;

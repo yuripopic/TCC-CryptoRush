@@ -1,1 +1,6 @@
 tipo,valor,quantidade,moeda
+Compra,22,6.891273958806032e-05,Bitcoin
+Venda,22,6.891273958806032e-05,Bitcoin
+Compra,22,0.008025213762512038,Etherium
+Compra,22,0.029506833514397993,Solana
+Compra,22,0.0018456700998926994,BNB
