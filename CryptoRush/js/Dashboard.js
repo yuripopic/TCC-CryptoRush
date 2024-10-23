@@ -3,7 +3,14 @@ document.addEventListener('DOMContentLoaded', async function () {
     const venderButton = document.querySelector('.vermelho');
     const historyDiv = document.getElementById('history');
     const advanceDateButton = document.querySelector('.advance-date');
-    
+
+    let currentWeek = 0;
+    const totalWeeks = 10;
+
+    // Dados de exemplo para os investimentos do usuário e do bot
+    const userInvestments = [100, 120, 150, 180, 160, 190, 200, 220, 240, 260];
+    const botInvestments = [110, 130, 160, 170, 180, 200, 210, 230, 250, 270];
+
     // Função para consultar o saldo
     async function getSaldo() {
         return fetch('http://127.0.0.1:5000/get-saldo')
@@ -56,6 +63,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 console.log('Data avançada com sucesso:', data.message);
                 const dataSpan = document.querySelector('.status span:nth-child(2)');
                 dataSpan.textContent = `Data: ${data.semana} semana`;
+                updateChart(data.semana);
             }
         } catch (error) {
             console.error('Erro ao avançar a data:', error);
@@ -354,4 +362,46 @@ function addTransaction(type, valor, quantidade, moeda) {
     
     // Adiciona evento de clique para o botão "Comprar"
     comprarButton.addEventListener('click', validarCompra);
+
+    // Gráfico Chart.js
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    const myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'User Performance',
+                data: [],
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+                fill: false
+            }, {
+                label: 'Bot Performance',
+                data: [],
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 2,
+                fill: false
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Função para atualizar o gráfico
+    async function updateChart() {
+        try{
+            performanceChart.data.labels.push(`Week ${week + 1}`);
+            performanceChart.data.datasets[0].data.push(userInvestments[week]);
+            performanceChart.data.datasets[1].data.push(botInvestments[week]);
+            performanceChart.update();
+        } catch(error){
+            console.error("Erro na atualização da semana")
+        }
+    }
+
 });
