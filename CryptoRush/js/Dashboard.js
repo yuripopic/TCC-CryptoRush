@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const venderButton = document.querySelector('.vermelho');
     const historyDiv = document.getElementById('history');
     const advanceDateButton = document.querySelector('.advance-date');
-
+    let cryptoChart; 
     let currentWeek = 0;
     const totalWeeks = 10;
 
