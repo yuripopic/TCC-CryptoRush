@@ -19,8 +19,8 @@
                 <span>Lucro: R$ 00,00</span>
             </div>
             <div class="buttons-carteira">
-                <input onclick="window.location.href='SuaCarteira.html'" type="button" value="Sua Carteira">
-                <input onclick="window.location.href='AdversarioCarteira.html'" type="button" value="Carteira Adversário">
+                <input class="btn-carteira" onclick="window.location.href='SuaCarteira.html'" type="button" value="Sua Carteira">
+                <input class="btn-carteira" onclick="window.location.href='AdversarioCarteira.html'" type="button" value="Carteira Adversário">
             </div>
         </header>
 
@@ -28,46 +28,48 @@
 
         <div class="principal">
             <div class="left-panel">
-                
-                <!--
-                <div class="dash">
-                    <img src="imagem/grafico.webp" alt="Gráfico" class="graph">
-                    <button class="advance-date">Avançar a data</button>
-                </div>
-                -->
-                
-                <!-- Chart Section -->
+
                 <div class=dash>
-                    <canvas id="performanceChart" width="880" height="450"></canvas>
-                    <button class="advance-date">Avançar a data</button>
+                    <canvas id="performanceChart"></canvas>
+                    <div class="buttons-dash">
+                        <div>
+                            <button class="btn-crypto" onclick="loadData('Bases/Bitcoin Historical Data.csv')">Bitcoin</button>
+                            <button class="btn-crypto" onclick="loadData('Bases/Ethereum Historical Data.csv')">Ethereum</button>
+                            <button class="btn-crypto" onclick="loadData('Bases/BNB Historical Data.csv')">BNB</button>
+                        </div>
+                        <div>
+                            <button class="advance-date">Avançar a data</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="divider-dash"></div>
 
                 <div class="inputs">
-                    <div class="input-group">
-                        <label for="valor">Valor aplicado:</label>
-                        <input type="number" id="valor" placeholder="R$ 00,00">
-                    </div>
-                
-                    <div class="input-group">
-                        <label for="quantidade">Quantidade:</label>
-                        <input type="number" id="quantidade" placeholder="Quantidade" readonly>
-                    </div>
-                
-                    <div class="input-group">
-                        <label for="moeda">Criptomoeda:</label>
-                        <select id="moeda">
-                            <option value="Bitcoin">Bitcoin</option>
-                            <option value="Etherium">Etherium</option>
-                            <option value="Solana">Solana</option>
-                            <option value="BNB">BNB</option>
-                        </select>
+                    <div class="campos-inputs">
+                        <div class="input-group">
+                            <label for="valor">Valor aplicado:</label>
+                            <input type="number" id="valor" placeholder="R$ 00,00">
+                        </div>
+                    
+                        <div class="input-group">
+                            <label for="quantidade">Quantidade:</label>
+                            <input type="number" id="quantidade" placeholder="Quantidade" readonly>
+                        </div>
+                    
+                        <div class="input-group">
+                            <label for="moeda">Criptomoeda:</label>
+                            <select id="moeda">
+                                <option value="Bitcoin">Bitcoin</option>
+                                <option value="Etherium">Etherium</option>
+                                <option value="BNB">BNB</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="conteudo">
-                        <input class="verde" type="button" value="Comprar">
-                        <input class="vermelho" type="button" value="Vender">
+                    <div class="buttons-compra-venda">
+                        <button class="verde">Comprar</button>
+                        <button class="vermelho">Vender</button>
                     </div>                    
                     
                 </div>               
@@ -80,11 +82,10 @@
 
         </div>
     </div>
-    <!-- Bootstrap JS and Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Custom JS -->
     <script src="js/Dashboard.js"></script>
 </body>
 </html>
