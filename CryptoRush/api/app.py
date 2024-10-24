@@ -421,5 +421,108 @@ def avancar_data():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/get-variacao', methods=['POST'])
+def get_variacao():
+    try:
+        data = request.get_json()
+        moeda = data.get('moeda')
+        semana = data.get('semana')
+
+        # Caminho do arquivo CSV da criptomoeda
+        csv_file = os.path.join(DATA_DIR, f"previsão semanal - {moeda}.csv")
+
+        if not os.path.exists(csv_file):
+            return jsonify({"error": f"Arquivo de cotações para {moeda} não encontrado."}), 404
+
+        # Abrindo o arquivo CSV e buscando pela coluna Variação Real (%)
+        with open(csv_file, 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                if int(row['Semana']) == semana:
+                    return jsonify({"variacao_real": row['VariaÃ§Ã£o Real (%)']}), 200
+
+        return jsonify({"error": "Variação não encontrada para a semana especificada."}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Função para ler o arquivo quantidade.txt
+def get_quantidade():
+    quantidade = {}
+    if os.path.exists(QUANTIDADE_PATH):
+        with open(QUANTIDADE_PATH, 'r') as file:
+            for line in file:
+                moeda, qtd = line.strip().split(',')
+                quantidade[moeda] = float(qtd)
+    return quantidade
+
+# Função para obter o valor investido (baseado nas transações)
+def calcular_valor_investido(moeda):
+    valor_investido = 0
+    if os.path.exists(TRANSACOES_PATH):
+        with open(TRANSACOES_PATH, 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                if row['moeda'] == moeda:
+                    if row['tipo'] == 'Compra':
+                        valor_investido += float(row['valor'])
+                    elif row['tipo'] == 'Venda':
+                        valor_investido -= float(row['valor'])
+    return valor_investido
+
+# Função para obter a cotação atual de uma criptomoeda
+def get_cotacao_atual(moeda, semana_atual):
+    csv_file = os.path.join(DATA_DIR, f"previsão semanal - {moeda}.csv")
+    if os.path.exists(csv_file):
+        with open(csv_file, 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                if int(row['Semana']) == semana_atual:
+                    return float(row['Price'])
+    return None
+
+# Função para ler a semana atual
+def get_semana_atual():
+    if os.path.exists(SEMANA_PATH):
+        with open(SEMANA_PATH, 'r') as file:
+            return int(file.read().strip())
+    return None
+
+# Endpoint para calcular o lucro
+@app.route('/get-lucro', methods=['POST'])
+def get_lucro():
+    try:
+        data = request.get_json()
+        moeda = data.get('moeda')
+
+        # Calcula o valor investido
+        valor_investido = calcular_valor_investido(moeda)
+
+        # Pega a quantidade de criptomoedas
+        quantidade = get_quantidade().get(moeda, 0)
+
+        # Pega a semana atual
+        semana_atual = get_semana_atual()
+
+        # Pega a cotação atual
+        cotacao_atual = get_cotacao_atual(moeda, semana_atual)
+
+        if cotacao_atual is None:
+            return jsonify({"error": "Cotação não encontrada para a semana atual."}), 404
+
+        # Calcula o valor atual da criptomoeda
+        valor_atual = cotacao_atual * quantidade
+
+        # Calcula o lucro
+        lucro = valor_atual - valor_investido
+
+        return jsonify({
+            "moeda": moeda,
+            "valor_investido": valor_investido,
+            "valor_atual": valor_atual,
+            "lucro": lucro
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
