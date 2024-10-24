@@ -8,6 +8,7 @@ CORS(app)
 
 # Obtendo o caminho absoluto para o arquivo saldo.txt
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
 SALDO_PATH = os.path.join(BASE_DIR, 'data', 'saldo.txt')
 COTACAO_PATH = os.path.join(BASE_DIR, 'data/cotacao-atual.csv')
 TRANSACOES_PATH = os.path.join(BASE_DIR, 'data/transacoes.csv')
@@ -63,23 +64,44 @@ def salvar_saldo():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Função para ler o arquivo ano.txt e retornar o ano atual
+def get_ano():
+    if os.path.exists(ANO_PATH):
+        with open(ANO_PATH, 'r') as file:
+            return int(file.read().strip())
+    return None
+
+# Função para ler o arquivo semana.txt e retornar a semana atual
+def get_semana_cotacao():
+    if os.path.exists(SEMANA_PATH):
+        with open(SEMANA_PATH, 'r') as file:
+            return int(file.read().strip())
+    return None
+
 @app.route('/get-cotacao', methods=['POST'])
 def get_cotacao():
     try:
         data = request.get_json()
         moeda = data.get('moeda')
 
-        if not moeda:
-            return jsonify({"error": "Moeda não informada"}), 400
+        ano = get_ano()
+        semana = get_semana_cotacao()
 
-        # Lê o arquivo CSV e busca a cotação da moeda
-        with open(COTACAO_PATH, newline='') as csvfile:
-            reader = csv.DictReader(csvfile)
+        if not ano or not semana:
+            return jsonify({"error": "Ano ou semana não encontrados."}), 400
+
+        csv_file = os.path.join(DATA_DIR, f"previsão semanal - {moeda}.csv")
+
+        if not os.path.exists(csv_file):
+            return jsonify({"error": f"Arquivo de cotações para {moeda} não encontrado."}), 404
+
+        with open(csv_file, 'r') as file:
+            reader = csv.DictReader(file)
             for row in reader:
-                if row['moeda'] == moeda:
-                    return jsonify({"cotacao": float(row['cotacao'])})
+                if int(row['Ano']) == ano and int(row['Semana']) == semana:
+                    return jsonify({"cotacao": float(row['Price'])}), 200
 
-        return jsonify({"error": "Cotação não encontrada"}), 404
+        return jsonify({"error": "Cotação não encontrada para a combinação de ano e semana."}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

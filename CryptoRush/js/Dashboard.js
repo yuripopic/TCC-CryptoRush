@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         return fetch('http://127.0.0.1:5000/get-cotacao', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ moeda: moeda })  // Envia a moeda selecionada
+            body: JSON.stringify({ moeda: moeda })
         })
         .then(response => response.json())
         .then(data => {
@@ -116,14 +116,15 @@ document.addEventListener('DOMContentLoaded', async function () {
                 console.error('Erro ao buscar cotação:', data.error);
                 return null;
             } else {
-                return data.cotacao;  // Retorna a cotação
+                console.log("TESTE COTAÇÃO " + data.cotacao);
+                return data.cotacao;
             }
         })
         .catch(error => {
             console.error('Erro ao buscar cotação:', error);
             return null;
         });
-    }    
+    }      
 
     // Função para calcular a quantidade de criptomoeda que pode ser comprada
     function calcularQuantidade(valorAplicado, cotacao) {
