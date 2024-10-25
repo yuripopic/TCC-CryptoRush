@@ -42,12 +42,12 @@ document.addEventListener('DOMContentLoaded', async function () {
             } else {
                 console.log('Semana atual:', data.semana);
                 const dataSpan = document.querySelector('.status span:nth-child(2)');
-                dataSpan.textContent = `Data: ${data.semana} semana`;
+                dataSpan.textContent = `Data: Semana ${data.semana}`;
             }
         } catch (error) {
             console.error('Erro ao buscar a semana:', error);
         }
-    }
+    }    
     
     // Função para avançar a data
     async function avancarData() {
@@ -60,15 +60,18 @@ document.addEventListener('DOMContentLoaded', async function () {
             if (data.error) {
                 console.error('Erro ao avançar a data:', data.error);
             } else {
-                console.log('Data avançada com sucesso:', data.message);
+                console.log('Decisão do adversário e avanço de semana:', data.message);
+                console.log('Investimentos do adversário:', data.investimentos);
+                console.log('Nova semana:', data.nova_semana);
+                
+                // Atualizar a semana no frontend
                 const dataSpan = document.querySelector('.status span:nth-child(2)');
-                dataSpan.textContent = `Data: ${data.semana} semana`;
-                updateChart(data.semana);
+                dataSpan.textContent = `Data: Semana ${data.nova_semana}`;
             }
         } catch (error) {
             console.error('Erro ao avançar a data:', error);
         }
-    }
+    }    
 
     // Adiciona evento de clique ao botão "Avançar a data"
     advanceDateButton.addEventListener('click', avancarData);
