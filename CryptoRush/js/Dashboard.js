@@ -3,13 +3,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     const venderButton = document.querySelector('.vermelho');
     const historyDiv = document.getElementById('history');
     const advanceDateButton = document.querySelector('.advance-date');
-    let cryptoChart; 
-    let currentWeek = 0;
-    const totalWeeks = 10;
-
-    // Dados de exemplo para os investimentos do usuário e do bot
-    const userInvestments = [100, 120, 150, 180, 160, 190, 200, 220, 240, 260];
-    const botInvestments = [110, 130, 160, 170, 180, 200, 210, 230, 250, 270];
 
     // Função para consultar o saldo
     async function getSaldo() {
@@ -367,45 +360,169 @@ function addTransaction(type, valor, quantidade, moeda) {
     // Adiciona evento de clique para o botão "Comprar"
     comprarButton.addEventListener('click', validarCompra);
 
-    // Gráfico Chart.js
-    const ctx = document.getElementById('performanceChart').getContext('2d');
-    const myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'User Performance',
-                data: [],
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 2,
-                fill: false
-            }, {
-                label: 'Bot Performance',
-                data: [],
-                borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 2,
-                fill: false
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
+    const performanceChartCtx = document.getElementById('performanceChart').getContext('2d');
+    let performanceChart;
+    let currentDate = new Date(); // Data atual do gráfico
+    let maxDate; // Data limite
+
+    // Carrega a data do arquivo data/ano.txt
+    function loadMaxDate() {
+        return fetch('data/ano.txt')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro ao carregar o arquivo: ${response.statusText}`);
+                }
+                return response.text();
+            })
+            .then(data => {
+                const year = parseInt(data.trim());
+                // Define maxDate para o último dia do ano anterior
+                maxDate = new Date(year - 1, 11, 31); // 31 de dezembro do ano anterior
+                console.log('Data máxima carregada:', maxDate);
+                loadCSV('Bitcoin'); // Carrega os dados iniciais do Bitcoin
+            })
+            .catch(error => {
+                console.error("Erro ao carregar o arquivo:", error);
+            });
+    }
+
+    // Carrega os dados CSV e filtra com base na data
+    function loadCSV(cryptoName) {
+        const filePath = `Bases/${cryptoName} Historical Data.csv`;
+        console.log('Tentando carregar:', filePath); // Log do caminho do arquivo
+
+        fetch(filePath)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Erro ao carregar o arquivo: ${response.statusText}`);
+                }
+                return response.text();
+            })
+            .then(data => {
+                Papa.parse(data, {
+                    header: true,
+                    complete: function(results) {
+                        console.log('Resultados do CSV:', results);
+                        // Filtra datas até a data máxima (31 de dezembro do ano anterior)
+                        const filteredData = results.data.filter(row => {
+                            const rowDate = new Date(row.Date);
+                            return rowDate <= maxDate; // Filtra datas menores ou iguais à data máxima
+                        });
+                        const labels = filteredData.map(row => row.Date);
+                        const prices = filteredData.map(row => parseFloat(row.Price));
+                        console.log('Labels filtrados:', labels);
+                        console.log('Prices filtrados:', prices);
+                        createChart(labels, prices);
+                    },
+                    error: function(error) {
+                        console.error("Erro ao fazer parsing do CSV:", error);
+                    }
+                });
+            })
+            .catch(error => {
+                console.error("Erro ao carregar o arquivo:", error);
+            });
+    }
+
+    // Cria o gráfico
+    function createChart(labels, data) {
+        if (performanceChart) {
+            performanceChart.destroy();
+        }
+
+        performanceChart = new Chart(performanceChartCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Preço da Criptomoeda',
+                    data: data,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Preço (USD)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Data'
+                        }
+                    }
+                },
+                plugins: {
+                    zoom: {
+                        pan: {
+                            enabled: true,
+                            mode: 'xy',
+                            threshold: 10,
+                        },
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                                speed: 0.1,
+                            },
+                            pinch: {
+                                enabled: true,
+                            },
+                            mode: 'x',
+                            limits: {
+                                y: {
+                                    min: 0,
+                                    max: 80000
+                                }
+                            },
+                            drag: {
+                                enabled: true,
+                                borderColor: 'rgba(0, 0, 0, 0.3)',
+                                borderWidth: 1,
+                                backgroundColor: 'rgba(0, 0, 0, 0.1)'
+                            },
+                        }
+                    }
                 }
             }
-        }
-    });
-
-    // Função para atualizar o gráfico
-    async function updateChart() {
-        try{
-            performanceChart.data.labels.push(`Week ${week + 1}`);
-            performanceChart.data.datasets[0].data.push(userInvestments[week]);
-            performanceChart.data.datasets[1].data.push(botInvestments[week]);
-            performanceChart.update();
-        } catch(error){
-            console.error("Erro na atualização da semana")
-        }
+        });
     }
+
+    // Função para avançar a data
+    function advanceDate() {
+        // Adiciona 7 dias à data atual
+        currentDate.setDate(currentDate.getDate() + 7);
+        console.log('Nova data atual:', currentDate);
+        // Recarrega os dados filtrados com base na nova data atual
+        loadCSV('Bitcoin'); // Você pode ajustar para recarregar qualquer criptomoeda
+    }
+
+    // Adiciona eventos de clique aos botões
+    document.querySelector('.bitcoin-btn').addEventListener('click', () => loadCSV('Bitcoin'));
+    document.querySelector('.ethereum-btn').addEventListener('click', () => loadCSV('Ethereum'));
+    document.querySelector('.bnb-btn').addEventListener('click', () => loadCSV('BNB'));
+    document.querySelector('.solana-btn').addEventListener('click', () => loadCSV('Solana'));
+    document.querySelector('.advance-date').addEventListener('click', advanceDate); // Adiciona o evento para avançar a data
+
+    // Função para resetar o zoom
+    function resetZoom() {
+        performanceChart.resetZoom();
+    }
+
+    // Adiciona o botão de reset
+    const resetButton = document.createElement('button');
+    resetButton.innerText = 'Resetar Zoom';
+    resetButton.classList.add('reset-zoom');
+    resetButton.addEventListener('click', resetZoom);
+    document.querySelector('.buttons-dash').appendChild(resetButton);
+
+    // Inicia carregando os dados da data máxima 
+    loadMaxDate();
 
 });
