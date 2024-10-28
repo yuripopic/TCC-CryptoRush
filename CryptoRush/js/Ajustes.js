@@ -5,13 +5,13 @@ function ajustarValores() {
             
     if (dificuldade === 'facil') {
         caixaInicial.value = '100.000,00';
-        assertividadeBot.value = '20%';
+        assertividadeBot.value = '30%';
     } else if (dificuldade === 'normal') {
         caixaInicial.value = '50.000,00';
         assertividadeBot.value = '50%';
     } else if (dificuldade === 'dificil') {
         caixaInicial.value = '10.000,00';
-        assertividadeBot.value = '80%';
+        assertividadeBot.value = '90%';
     }
 }
 

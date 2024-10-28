@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }    
 
     // Adiciona evento de clique ao botão "Avançar a data"
-    advanceDateButton.addEventListener('click', avancarData);
+    // advanceDateButton.addEventListener('click', avancarData);
 
     // Chama a função para carregar a semana quando a página for carregada
     await getSemana();
@@ -362,8 +362,23 @@ function addTransaction(type, valor, quantidade, moeda) {
 
     const performanceChartCtx = document.getElementById('performanceChart').getContext('2d');
     let performanceChart;
-    let currentDate = new Date(); // Data atual do gráfico
-    let maxDate; // Data limite
+    let maxDate; // Data que limita o grafico
+    const LIMIT_DATE = new Date(2024, 7, 31); // 31 de agosto de 2024 (data final)
+    let currentCrypto = 'Bitcoin'; // Armazena a criptomoeda atual selecionada
+    let currentChart = 'crypto'; // Define o gráfico atual (crypto ou profit)
+    let playerBalances = [];
+    let botBalances = [];
+
+    // Função para carregar o saldo inicial dos arquivos
+    function loadInitialBalances() {
+        return Promise.all([
+            fetch('data/saldo.txt').then(response => response.text()),
+            fetch('data/saldoBot.txt').then(response => response.text())
+        ]).then(([playerData, botData]) => {
+            playerBalances.push(parseFloat(playerData.trim()));
+            botBalances.push(parseFloat(botData.trim()));
+        }).catch(error => console.error("Erro ao carregar saldos iniciais:", error));
+}
 
     // Carrega a data do arquivo data/ano.txt
     function loadMaxDate() {
@@ -376,20 +391,18 @@ function addTransaction(type, valor, quantidade, moeda) {
             })
             .then(data => {
                 const year = parseInt(data.trim());
-                // Define maxDate para o último dia do ano anterior
                 maxDate = new Date(year - 1, 11, 31); // 31 de dezembro do ano anterior
                 console.log('Data máxima carregada:', maxDate);
-                loadCSV('Bitcoin'); // Carrega os dados iniciais do Bitcoin
+                return loadInitialBalances(); // Carrega o saldo inicial do jogador e do bot
             })
-            .catch(error => {
-                console.error("Erro ao carregar o arquivo:", error);
-            });
+            .then(() => loadCSV(currentCrypto)) // Carrega os dados da criptomoeda atual
+            .catch(error => console.error("Erro ao carregar o arquivo:", error));
     }
 
     // Carrega os dados CSV e filtra com base na data
     function loadCSV(cryptoName) {
         const filePath = `Bases/${cryptoName} Historical Data.csv`;
-        console.log('Tentando carregar:', filePath); // Log do caminho do arquivo
+        console.log('Carregando:', filePath);
 
         fetch(filePath)
             .then(response => {
@@ -402,17 +415,13 @@ function addTransaction(type, valor, quantidade, moeda) {
                 Papa.parse(data, {
                     header: true,
                     complete: function(results) {
-                        console.log('Resultados do CSV:', results);
-                        // Filtra datas até a data máxima (31 de dezembro do ano anterior)
                         const filteredData = results.data.filter(row => {
                             const rowDate = new Date(row.Date);
-                            return rowDate <= maxDate; // Filtra datas menores ou iguais à data máxima
+                            return rowDate <= maxDate;
                         });
                         const labels = filteredData.map(row => row.Date);
                         const prices = filteredData.map(row => parseFloat(row.Price));
-                        console.log('Labels filtrados:', labels);
-                        console.log('Prices filtrados:', prices);
-                        createChart(labels, prices);
+                        createChart(labels, prices, cryptoName); // Passa o nome da criptomoeda para o gráfico
                     },
                     error: function(error) {
                         console.error("Erro ao fazer parsing do CSV:", error);
@@ -424,8 +433,8 @@ function addTransaction(type, valor, quantidade, moeda) {
             });
     }
 
-    // Cria o gráfico
-    function createChart(labels, data) {
+    // Cria o gráfico do histórico do preço de cada criptomoeda
+    function createChart(labels, data, cryptoName) {
         if (performanceChart) {
             performanceChart.destroy();
         }
@@ -435,7 +444,7 @@ function addTransaction(type, valor, quantidade, moeda) {
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Preço da Criptomoeda',
+                    label: `${cryptoName}`,
                     data: data,
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1,
@@ -475,12 +484,6 @@ function addTransaction(type, valor, quantidade, moeda) {
                                 enabled: true,
                             },
                             mode: 'x',
-                            limits: {
-                                y: {
-                                    min: 0,
-                                    max: 80000
-                                }
-                            },
                             drag: {
                                 enabled: true,
                                 borderColor: 'rgba(0, 0, 0, 0.3)',
@@ -489,40 +492,122 @@ function addTransaction(type, valor, quantidade, moeda) {
                             },
                         }
                     }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: false,
                 }
             }
         });
     }
 
-    // Função para avançar a data
+    // Cria o gráfico de rendimento
+    function updateProfitChart() {
+        if (performanceChart) {
+            performanceChart.destroy();
+        }
+
+        const labels = Array.from({ length: playerBalances.length }, (_, i) => `Semana ${i + 1}`);
+        performanceChart = new Chart(performanceChartCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Rendimento do Jogador',
+                        data: playerBalances,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        fill: false,
+                        pointRadius: 1
+                    },
+                    {
+                        label: 'Rendimento do Bot',
+                        data: botBalances,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 2,
+                        fill: false,
+                        pointRadius: 1
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Saldo (USD)' }
+                    },
+                }
+            }
+        });
+    }
+
+    // Função para avançar a data e atualizar o gráfico atual
     function advanceDate() {
-        // Adiciona 7 dias à data atual
-        currentDate.setDate(currentDate.getDate() + 7);
-        console.log('Nova data atual:', currentDate);
-        // Recarrega os dados filtrados com base na nova data atual
-        loadCSV('Bitcoin'); // Você pode ajustar para recarregar qualquer criptomoeda
+        const newMaxDate = new Date(maxDate);
+        newMaxDate.setDate(newMaxDate.getDate() + 7);
+
+        if (newMaxDate > LIMIT_DATE) {
+            alert("Você chegou ao fim dos dados disponíveis.");
+        } else {
+            maxDate = newMaxDate;
+            console.log('Nova data máxima:', maxDate);
+
+            // Carrega e atualiza os dados de criptomoedas ou rendimento, dependendo do gráfico atual
+            if (currentChart === 'crypto') {
+                loadCSV(currentCrypto);
+            } else if (currentChart === 'profit') {
+                Promise.all([
+                    fetch('data/saldo.txt').then(response => response.text()),
+                    fetch('data/saldoBot.txt').then(response => response.text())
+                ])
+                .then(([newPlayerBalance, newBotBalance]) => {
+                    playerBalances.push(parseFloat(newPlayerBalance.trim()));
+                    botBalances.push(parseFloat(newBotBalance.trim()));
+                    updateProfitChart();
+                })
+                .catch(error => console.error("Erro ao atualizar saldos:", error));
+            }
+        }
     }
 
-    // Adiciona eventos de clique aos botões
-    document.querySelector('.bitcoin-btn').addEventListener('click', () => loadCSV('Bitcoin'));
-    document.querySelector('.ethereum-btn').addEventListener('click', () => loadCSV('Ethereum'));
-    document.querySelector('.bnb-btn').addEventListener('click', () => loadCSV('BNB'));
-    document.querySelector('.solana-btn').addEventListener('click', () => loadCSV('Solana'));
-    document.querySelector('.advance-date').addEventListener('click', advanceDate); // Adiciona o evento para avançar a data
+    // Adiciona os eventos de clique aos botões de criptomoeda / rendimento
+    // ========================= {BOTÃO BITCOIN} =========================
+    document.querySelector('.bitcoin-btn').addEventListener('click', () => {
+        currentCrypto = 'Bitcoin';
+        currentChart = 'crypto';
+        loadCSV(currentCrypto);
+    });
+    // ========================= {BOTÃO ETHEREUM} =========================
+    document.querySelector('.ethereum-btn').addEventListener('click', () => {
+        currentCrypto = 'Ethereum';
+        currentChart = 'crypto';
+        loadCSV(currentCrypto);
+    });
+    // =========================== {BOTÃO BNB} ===========================
+    document.querySelector('.bnb-btn').addEventListener('click', () => {
+        currentCrypto = 'BNB';
+        currentChart = 'crypto';
+        loadCSV(currentCrypto);
+    });
+    // ========================== {BOTÃO SOLANA} ==========================
+    document.querySelector('.solana-btn').addEventListener('click', () => {
+        currentCrypto = 'Solana';
+        currentChart = 'crypto';
+        loadCSV(currentCrypto);
+    });
+    // ======================== {BOTÃO RENDIMENTO} ========================
+    document.querySelector('.rendimento').addEventListener('click', () => {
+        currentChart = 'profit';
+        updateProfitChart();
+    });
+    document.querySelector('.advance-date').addEventListener('click', advanceDate);
 
-    // Função para resetar o zoom
-    function resetZoom() {
-        performanceChart.resetZoom();
-    }
-
-    // Adiciona o botão de reset
-    const resetButton = document.createElement('button');
-    resetButton.innerText = 'Resetar Zoom';
-    resetButton.classList.add('reset-zoom');
-    resetButton.addEventListener('click', resetZoom);
-    document.querySelector('.buttons-dash').appendChild(resetButton);
-
-    // Inicia carregando os dados da data máxima 
+    // Inicia carregando os dados da data máxima
     loadMaxDate();
 
 });
