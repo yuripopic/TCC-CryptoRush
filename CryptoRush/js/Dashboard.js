@@ -559,7 +559,16 @@ function addTransaction(type, valor, quantidade, moeda) {
 
             // Carrega e atualiza os dados de criptomoedas ou rendimento, dependendo do gráfico atual
             if (currentChart === 'crypto') {
-                loadCSV(currentCrypto);
+                Promise.all([
+                    fetch('data/saldo.txt').then(response => response.text()),
+                    fetch('data/saldoBot.txt').then(response => response.text())
+                ])
+                .then(([newPlayerBalance, newBotBalance]) => {
+                    playerBalances.push(parseFloat(newPlayerBalance.trim()));
+                    botBalances.push(parseFloat(newBotBalance.trim()));
+                    loadCSV(currentCrypto);
+                })
+                .catch(error => console.error("Erro ao atualizar saldos:", error));
             } else if (currentChart === 'profit') {
                 Promise.all([
                     fetch('data/saldo.txt').then(response => response.text()),
