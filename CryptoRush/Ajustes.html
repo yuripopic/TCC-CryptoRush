@@ -17,10 +17,6 @@
             </span>
 
             <h2>AJUSTES DO JOGO</h2>
-            <!-- <div class="input-group">
-                <label for="nome_investimento">Nome do Investimento</label>
-                <input type="text" id="nome_investimento" name="nome_investimento">
-            </div> -->
 
             <div class="input-group">
                 <label for="dificuldade">Dificuldade</label>
@@ -67,12 +63,52 @@
             </span>
 
             <h2>EXPLICAÇÃO DOS CAMPOS</h2>
-            <div class="input-group">
-                <label for="Nome-investimento"><strong>Nome do Investimento:</strong> Insira o nome do seu investimento.</label>
-                <label for="Dificuldade"><strong>Dificuldade:</strong> Defina a dificuldade do jogo (Fácil, Normal, Difícil).</label>
-                <label for="Valor-inicial"><strong>Valor do Caixa Inicial:</strong> Especifique o valor inicial em reais que você terá disponível no jogo. Este valor será ajustado automaticamente com base na dificuldade.</label>
-                <label for="Assertividade-bot"><strong>Assertividade do Bot:</strong> Este campo será preenchido automaticamente com base na dificuldade selecionada: Fácil (20%), Normal (50%), Difícil (80%).</label>
-                <label for="Ano-inicio"><strong>Ano de Início:</strong> Selecione o ano em que o jogo começará. O valor deve estar entre 2020 e 2024.</label>
+
+            <div class="field-group">
+                <div class="icon">🎯</div>
+                <div class="field-content">
+                    <strong>Dificuldade:</strong>
+                    <p>Dificuldade na qual vai definir a configuração do jogo:</p>
+                    <ul>
+                        <li>Fácil</li>
+                        <li>Normal</li>
+                        <li>Difícil</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="icon">💰</div>
+                <div class="field-content">
+                    <strong>Valor do caixa Inicial:</strong>
+                    <p>Este campo define qual seu patrimônio inicial para investir:</p>
+                    <ul>
+                        <li>Fácil - $100000</li>
+                        <li>Normal - $50000</li>
+                        <li>Difícil - $10000</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="icon">🤖</div>
+                <div class="field-content">
+                    <strong>Assertividade do Bot:</strong>
+                    <p>Este campo define qual a porcentagem de acerto das decisões do bot:</p>
+                    <ul>
+                        <li>Fácil - 30%</li>
+                        <li>Normal - 50%</li>
+                        <li>Difícil - 90%</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <div class="icon">📅</div>
+                <div class="field-content">
+                    <strong>Ano de Início:</strong>
+                    <p>Define o ano em que o jogo começará (2020, 2021, 2022, 2023 ou 2024).</p>
+                </div>
             </div>
         </div>
 
