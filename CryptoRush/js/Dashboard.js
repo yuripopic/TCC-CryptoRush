@@ -381,22 +381,40 @@ function addTransaction(type, valor, quantidade, moeda) {
 }
 
     // Carrega a data do arquivo data/ano.txt
-    function loadMaxDate() {
-        return fetch('data/ano.txt')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Erro ao carregar o arquivo: ${response.statusText}`);
-                }
-                return response.text();
-            })
-            .then(data => {
-                const year = parseInt(data.trim());
+    // Função para carregar e definir a data máxima
+    async function loadMaxDate() {
+        try {
+            const response = await fetch('data/max_date.txt');
+            if (!response.ok) {
+                throw new Error(`Erro ao carregar o arquivo: ${response.statusText}`);
+            }
+
+            const data = await response.text();
+
+            if (!data.trim()) {
+                // Se o arquivo está vazio, define a nova data inicial
+                const year = new Date().getFullYear();
                 maxDate = new Date(year - 1, 11, 31); // 31 de dezembro do ano anterior
-                console.log('Data máxima carregada:', maxDate);
-                return loadInitialBalances(); // Carrega o saldo inicial do jogador e do bot
-            })
-            .then(() => loadCSV(currentCrypto)) // Carrega os dados da criptomoeda atual
-            .catch(error => console.error("Erro ao carregar o arquivo:", error));
+                console.log('Data máxima inicializada como:', maxDate);
+            } else {
+                // Se o arquivo já possui uma data, incrementa 7 dias
+                const currentMaxDate = new Date(data.trim());
+                maxDate = new Date(currentMaxDate);
+                maxDate.setDate(maxDate.getDate() + 7);
+                console.log('Data máxima carregada e incrementada:', maxDate);
+            }
+
+            // Opcional: Salva a nova data no backend para persistência
+            await fetch('http://127.0.0.1:5000/atualizar-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ newMaxDate: maxDate.toISOString().split('T')[0] })
+            });
+
+            return loadInitialBalances(); // Carrega o saldo inicial do jogador e do bot
+        } catch (error) {
+            console.error("Erro ao carregar a data máxima:", error);
+        }
     }
 
     // Carrega os dados CSV e filtra com base na data
@@ -547,42 +565,41 @@ function addTransaction(type, valor, quantidade, moeda) {
     }
 
     // Função para avançar a data e atualizar o gráfico atual
-    function advanceDate() {
-        const newMaxDate = new Date(maxDate);
-        newMaxDate.setDate(newMaxDate.getDate() + 7);
-
+    async function advanceDate() {
+        let newMaxDate;
+        if (fileContent) {
+            // Se o arquivo já possui uma data, incrementa 7 dias
+            const currentMaxDate = new Date(fileContent.trim());
+            newMaxDate = new Date(currentMaxDate);
+            newMaxDate.setDate(newMaxDate.getDate() + 7);
+        } else {
+            // Se o arquivo está vazio, define a nova data inicial
+            newMaxDate = new Date(maxDate);
+        }
+    
+        // Verifica o limite de data
         if (newMaxDate > LIMIT_DATE) {
             alert("Você chegou ao fim dos dados disponíveis.");
-        } else {
-            maxDate = newMaxDate;
-            console.log('Nova data máxima:', maxDate);
-
-            // Carrega e atualiza os dados de criptomoedas ou rendimento, dependendo do gráfico atual
-            if (currentChart === 'crypto') {
-                Promise.all([
-                    fetch('data/saldo.txt').then(response => response.text()),
-                    fetch('data/saldoBot.txt').then(response => response.text())
-                ])
-                .then(([newPlayerBalance, newBotBalance]) => {
-                    playerBalances.push(parseFloat(newPlayerBalance.trim()));
-                    botBalances.push(parseFloat(newBotBalance.trim()));
-                    loadCSV(currentCrypto);
-                })
-                .catch(error => console.error("Erro ao atualizar saldos:", error));
-            } else if (currentChart === 'profit') {
-                Promise.all([
-                    fetch('data/saldo.txt').then(response => response.text()),
-                    fetch('data/saldoBot.txt').then(response => response.text())
-                ])
-                .then(([newPlayerBalance, newBotBalance]) => {
-                    playerBalances.push(parseFloat(newPlayerBalance.trim()));
-                    botBalances.push(parseFloat(newBotBalance.trim()));
-                    updateProfitChart();
-                })
-                .catch(error => console.error("Erro ao atualizar saldos:", error));
-            }
+            return;
         }
-    }
+    
+        // Salva a nova data no arquivo `max_date.txt`
+        maxDate = newMaxDate;
+        await fetch('http://127.0.0.1:5000/atualizar-data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ newMaxDate: maxDate.toISOString().split('T')[0] })
+        });
+    
+        console.log('Nova data máxima:', maxDate);
+    
+        // Atualiza o gráfico com base na nova data
+        if (currentChart === 'crypto') {
+            loadCSV(currentCrypto);
+        } else {
+            updateProfitChart();
+        }
+    }    
 
     // Adiciona os eventos de clique aos botões de criptomoeda / rendimento
     // ========================= {BOTÃO BITCOIN} =========================
