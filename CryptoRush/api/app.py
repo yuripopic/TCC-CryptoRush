@@ -18,6 +18,7 @@ QUANTIDADE_PATH = os.path.join(BASE_DIR, 'data/quantidade.txt')
 QUANTIDADE_BOT_PATH = os.path.join(BASE_DIR, 'data/quantidadeBot.txt')
 ANO_PATH = os.path.join(BASE_DIR, 'data/ano.txt')
 SEMANA_PATH = os.path.join(BASE_DIR, 'data/semana.txt')
+MAX_DATE_PATH = os.path.join(BASE_DIR, 'data/maxDate.txt')
 
 @app.route('/get-saldo', methods=['GET'])
 def get_saldo():
@@ -365,10 +366,12 @@ def salvar_ano():
 @app.route('/limpar-arquivos', methods=['POST'])
 def limpar_arquivos():
     try:
-        # Limpa o arquivo quantidade.txt
+        # Limpa arquivos .txt
         open(QUANTIDADE_PATH, 'w').close()
 
         open(QUANTIDADE_BOT_PATH, 'w').close()
+
+        open(MAX_DATE_PATH, 'w').close()
 
         # Limpa o arquivo transacoes.csv, mas preserva o cabeçalho
         with open(TRANSACOES_PATH, 'w', newline='') as file:
@@ -779,6 +782,30 @@ def get_lucro():
             "valor_atual": valor_atual,
             "lucro": lucro
         }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Função para garantir que o diretório existe
+def verificar_ou_criar_diretorio():
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
+
+# Função para atualizar a data máxima no arquivo
+def atualizar_max_date(new_date):
+    verificar_ou_criar_diretorio()
+    with open(MAX_DATE_PATH, 'w') as file:
+        file.write(new_date)
+
+# Rota para atualizar a data máxima recebida do frontend
+@app.route('/atualizar-data', methods=['POST'])
+def atualizar_data():
+    try:
+        new_date = request.json.get('newMaxDate')
+        if new_date:
+            atualizar_max_date(new_date)
+            return jsonify({"message": "Data máxima atualizada com sucesso"}), 200
+        else:
+            return jsonify({"error": "Data não fornecida"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
