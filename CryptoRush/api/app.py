@@ -424,12 +424,12 @@ def avancar_data():
         
         # Decisão do adversário de compra/venda
         resultado_investimentos = decisao_investimento_adversario()
-        #resultado_vendas = decisao_venda_adversario()
+        resultado_vendas = decisao_venda_adversario()
 
         return jsonify({
             "message": "Decisão do adversário tomada e semana avançada.",
             "investimentos": resultado_investimentos,
-            #"vendas": resultado_vendas,
+            "vendas": resultado_vendas,
             "nova_semana": nova_semana
         }), 200
     except Exception as e:
@@ -793,7 +793,7 @@ def verificar_ou_criar_diretorio():
 # Função para atualizar a data máxima no arquivo
 def atualizar_max_date(new_date):
     verificar_ou_criar_diretorio()
-    with open(MAX_DATE_PATH, 'w') as file:
+    with open(MAX_DATE_PATH, 'w', encoding='utf-8') as file:
         file.write(new_date)
 
 # Rota para atualizar a data máxima recebida do frontend
