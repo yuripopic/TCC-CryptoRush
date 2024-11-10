@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             } else {
                 console.log('Decisão do adversário e avanço de semana:', data.message);
                 console.log('Investimentos do adversário:', data.investimentos);
+                console.log('Vendas do adversário', data.venda)
                 console.log('Nova semana:', data.nova_semana);
                 
                 // Atualizar a semana no frontend
@@ -380,48 +381,53 @@ function addTransaction(type, valor, quantidade, moeda) {
         }).catch(error => console.error("Erro ao carregar saldos iniciais:", error));
 }
 
-    // Carrega a data do arquivo data/ano.txt
+    //Carrega a data do arquivo data/ano.txt
+    //Função para carregar e definir a data máxima
     // Função para carregar e definir a data máxima
     async function loadMaxDate() {
         try {
-            const response = await fetch('data/max_date.txt');
-            if (!response.ok) {
-                throw new Error(`Erro ao carregar o arquivo: ${response.statusText}`);
+            const responseAno = await fetch('data/ano.txt');
+            if (!responseAno.ok) {
+                throw new Error(`Erro ao carregar o arquivo: ${responseAno.statusText}`);
             }
 
-            const data = await response.text();
+            const data = await responseAno.text();
+            const maxDatePath = 'data/maxDate.txt';
 
-            if (!data.trim()) {
-                // Se o arquivo está vazio, define a nova data inicial
-                const year = new Date().getFullYear();
-                maxDate = new Date(year - 1, 11, 31); // 31 de dezembro do ano anterior
-                console.log('Data máxima inicializada como:', maxDate);
+            const responseMaxDate = await fetch(maxDatePath);
+            let fileC = null;
+            
+            if (responseMaxDate.ok) {
+                fileC = await responseMaxDate.text();
+            }
+
+            if (fileC) {
+                maxDate = new Date(fileC.trim()); // Certifique-se de que `fileC` está sendo tratado como uma data
+                console.log('Arquivo já possui data:', maxDate);
             } else {
-                // Se o arquivo já possui uma data, incrementa 7 dias
-                const currentMaxDate = new Date(data.trim());
-                maxDate = new Date(currentMaxDate);
-                maxDate.setDate(maxDate.getDate() + 7);
-                console.log('Data máxima carregada e incrementada:', maxDate);
-            }
+                const year = parseInt(data.trim());
+                maxDate = new Date(year - 1, 11, 31); // 31 de dezembro do ano anterior
+                console.log('Data máxima carregada:', maxDate);
+            }            
 
-            // Opcional: Salva a nova data no backend para persistência
-            await fetch('http://127.0.0.1:5000/atualizar-data', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ newMaxDate: maxDate.toISOString().split('T')[0] })
-            });
+            await loadInitialBalances(); // Carrega o saldo inicial do jogador e do bot
+            await loadCSV(currentCrypto); // Carrega os dados da criptomoeda atual
 
-            return loadInitialBalances(); // Carrega o saldo inicial do jogador e do bot
         } catch (error) {
-            console.error("Erro ao carregar a data máxima:", error);
+            console.error("Erro ao carregar o arquivo:", error);
         }
     }
 
     // Carrega os dados CSV e filtra com base na data
     function loadCSV(cryptoName) {
+        if (!maxDate || isNaN(maxDate.getTime())) {
+            console.error("maxDate não está definido ou não é uma data válida.");
+            return;
+        }
+    
         const filePath = `Bases/${cryptoName} Historical Data.csv`;
         console.log('Carregando:', filePath);
-
+    
         fetch(filePath)
             .then(response => {
                 if (!response.ok) {
@@ -435,11 +441,11 @@ function addTransaction(type, valor, quantidade, moeda) {
                     complete: function(results) {
                         const filteredData = results.data.filter(row => {
                             const rowDate = new Date(row.Date);
-                            return rowDate <= maxDate;
+                            return rowDate <= maxDate; // Filtra pela data máxima
                         });
                         const labels = filteredData.map(row => row.Date);
                         const prices = filteredData.map(row => parseFloat(row.Price));
-                        createChart(labels, prices, cryptoName); // Passa o nome da criptomoeda para o gráfico
+                        createChart(labels, prices, cryptoName);
                     },
                     error: function(error) {
                         console.error("Erro ao fazer parsing do CSV:", error);
@@ -449,7 +455,7 @@ function addTransaction(type, valor, quantidade, moeda) {
             .catch(error => {
                 console.error("Erro ao carregar o arquivo:", error);
             });
-    }
+    }    
 
     // Cria o gráfico do histórico do preço de cada criptomoeda
     function createChart(labels, data, cryptoName) {
@@ -566,32 +572,26 @@ function addTransaction(type, valor, quantidade, moeda) {
 
     // Função para avançar a data e atualizar o gráfico atual
     async function advanceDate() {
-        let newMaxDate;
-        if (fileContent) {
-            // Se o arquivo já possui uma data, incrementa 7 dias
-            const currentMaxDate = new Date(fileContent.trim());
-            newMaxDate = new Date(currentMaxDate);
-            newMaxDate.setDate(newMaxDate.getDate() + 7);
-        } else {
-            // Se o arquivo está vazio, define a nova data inicial
-            newMaxDate = new Date(maxDate);
-        }
+        const newMaxDate = new Date(maxDate);
+        newMaxDate.setDate(newMaxDate.getDate() + 7);
     
         // Verifica o limite de data
         if (newMaxDate > LIMIT_DATE) {
             alert("Você chegou ao fim dos dados disponíveis.");
-            return;
+        } else {
+            maxDate = newMaxDate;
+            console.log('Nova data máxima:', maxDate);
         }
-    
-        // Salva a nova data no arquivo `max_date.txt`
+        // Salva a nova data no arquivo `maxDate.txt`
         maxDate = newMaxDate;
+        const dataString = new Date(maxDate).toString();
         await fetch('http://127.0.0.1:5000/atualizar-data', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ newMaxDate: maxDate.toISOString().split('T')[0] })
+            body: JSON.stringify({ newMaxDate: dataString})
         });
     
-        console.log('Nova data máxima:', maxDate);
+        console.log('Salvando Data:', maxDate);
     
         // Atualiza o gráfico com base na nova data
         if (currentChart === 'crypto') {
@@ -599,6 +599,7 @@ function addTransaction(type, valor, quantidade, moeda) {
         } else {
             updateProfitChart();
         }
+        avancarData();
     }    
 
     // Adiciona os eventos de clique aos botões de criptomoeda / rendimento
@@ -635,5 +636,41 @@ function addTransaction(type, valor, quantidade, moeda) {
 
     // Inicia carregando os dados da data máxima
     loadMaxDate();
+
+    async function calcularLucro() {
+        try {
+            const rendimentosResponse = await fetch('http://127.0.0.1:5000/get-rendimentos');
+            const rendimentos = await rendimentosResponse.json();
+    
+            let lucroTotal = 0;  // Variável para armazenar o lucro total
+    
+            if (Array.isArray(rendimentos)) {
+                for (const rendimento of rendimentos) {
+                    // Requisição para calcular o lucro da criptomoeda
+                    const lucroResponse = await fetch('http://127.0.0.1:5000/get-lucro', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ moeda: rendimento.moeda })
+                    });
+    
+                    const lucroData = await lucroResponse.json();
+                    const lucro = lucroData.lucro;
+    
+                    // Somar o lucro da criptomoeda ao lucro total
+                    lucroTotal += lucro;
+                }
+    
+                // Atualizar o valor do lucro total na interface
+                const lucroSpan = document.querySelector('#lucro');
+                lucroSpan.textContent = `Lucro: R$ ${lucroTotal.toFixed(2)}`;
+            } else {
+                console.error('Dados inesperados recebidos (não é uma array):', rendimentos);
+            }
+        } catch (error) {
+            console.error('Erro ao calcular o lucro:', error);
+        }
+    }
+
+    calcularLucro();
 
 });
