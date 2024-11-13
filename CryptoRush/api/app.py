@@ -17,6 +17,7 @@ TRANSACOES_BOT_PATH = os.path.join(DATA_DIR, 'transacoesBot.csv')
 QUANTIDADE_PATH = os.path.join(BASE_DIR, 'data/quantidade.txt')
 QUANTIDADE_BOT_PATH = os.path.join(BASE_DIR, 'data/quantidadeBot.txt')
 ANO_PATH = os.path.join(BASE_DIR, 'data/ano.txt')
+DIFICULDADE_PATH = os.path.join(BASE_DIR, 'data/dificuldade.txt')
 SEMANA_PATH = os.path.join(BASE_DIR, 'data/semana.txt')
 MAX_DATE_PATH = os.path.join(BASE_DIR, 'data/maxDate.txt')
 
@@ -359,6 +360,20 @@ def salvar_ano():
             file.write(str(ano))
 
         return jsonify({"message": "Ano salvo com sucesso"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/salvar-dificuldade', methods=['POST'])
+def salvar_dificuldade():
+    try:
+        data = request.get_json()
+        dificuldade = data.get('dificuldade')
+
+        # Grava o ano no arquivo ano.txt
+        with open(DIFICULDADE_PATH, 'w') as file:
+            file.write(str(dificuldade))
+
+        return jsonify({"message": "Dificuldade salva com sucesso"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
