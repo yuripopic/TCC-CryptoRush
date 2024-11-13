@@ -49,6 +49,26 @@ function validarCampos() {
             console.error('Erro ao salvar o ano:', error);
         });
 
+        // Salvar o dificuldade selecionada no backend
+        fetch('http://127.0.0.1:5000/salvar-dificuldade', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ dificuldade: dificuldade })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Erro ao salvar a dificuldade:', data.error);
+            } else {
+                console.log('Dificuldade salva com sucesso:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao salvar a dificuldade:', error);
+        });
+
         // Salvar o valor do caixa inicial no backend
         fetch('http://127.0.0.1:5000/salvar-saldo', {
             method: 'POST',
