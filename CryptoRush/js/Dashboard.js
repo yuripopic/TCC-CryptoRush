@@ -365,21 +365,45 @@ function addTransaction(type, valor, quantidade, moeda) {
     let performanceChart;
     let maxDate; // Data que limita o grafico
     const LIMIT_DATE = new Date(2024, 7, 31); // 31 de agosto de 2024 (data final)
-    let currentCrypto = 'Bitcoin'; // Armazena a criptomoeda atual selecionada
+    let currentCrypto = localStorage.getItem('currentCrypto') || 'Bitcoin'; // Armazena a criptomoeda atual selecionada
     let currentChart = 'crypto'; // Define o gráfico atual (crypto ou profit)
     let playerBalances = [];
     let botBalances = [];
 
-    // Função para carregar o saldo inicial dos arquivos
-    function loadInitialBalances() {
-        return Promise.all([
-            fetch('data/saldo.txt').then(response => response.text()),
-            fetch('data/saldoBot.txt').then(response => response.text())
-        ]).then(([playerData, botData]) => {
-            playerBalances.push(parseFloat(playerData.trim()));
-            botBalances.push(parseFloat(botData.trim()));
-        }).catch(error => console.error("Erro ao carregar saldos iniciais:", error));
-}
+    // Função para carregar os lucros iniciais dos arquivos
+    async function loadInitialBalances() {
+        try {
+            // Obter o lucro do jogador
+            const responsePlayer = await fetch('http://127.0.0.1:5000/get-lucro', {
+                method: 'POST', // Certifique-se de usar o método POST
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const playerData = await responsePlayer.json();
+    
+            // Obter o lucro do adversário (bot)
+            const responseBot = await fetch('http://127.0.0.1:5000/get-lucro-bot', {
+                method: 'POST', // Certifique-se de usar o método POST
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const botData = await responseBot.json();
+    
+            if (playerData.error || botData.error) {
+                console.error('Erro ao carregar lucros:', playerData.error || botData.error);
+                return;
+            }
+    
+            // Atualiza os balanços com os lucros
+            playerBalances.push(parseFloat(playerData.lucro));
+            botBalances.push(parseFloat(botData.lucro));
+    
+            console.log('Lucros carregados com sucesso:', {
+                player: playerData.lucro,
+                bot: botData.lucro
+            });
+        } catch (error) {
+            console.error("Erro ao carregar lucros iniciais:", error);
+        }
+    }    
 
     //Carrega a data do arquivo data/ano.txt
     //Função para carregar e definir a data máxima
@@ -606,24 +630,28 @@ function addTransaction(type, valor, quantidade, moeda) {
     // ========================= {BOTÃO BITCOIN} =========================
     document.querySelector('.bitcoin-btn').addEventListener('click', () => {
         currentCrypto = 'Bitcoin';
+        localStorage.setItem('currentCrypto', currentCrypto); // Salva no localStorage
         currentChart = 'crypto';
         loadCSV(currentCrypto);
     });
     // ========================= {BOTÃO ETHEREUM} =========================
     document.querySelector('.ethereum-btn').addEventListener('click', () => {
         currentCrypto = 'Ethereum';
+        localStorage.setItem('currentCrypto', currentCrypto); // Salva no localStorage
         currentChart = 'crypto';
         loadCSV(currentCrypto);
     });
     // =========================== {BOTÃO BNB} ===========================
     document.querySelector('.bnb-btn').addEventListener('click', () => {
         currentCrypto = 'BNB';
+        localStorage.setItem('currentCrypto', currentCrypto); // Salva no localStorage
         currentChart = 'crypto';
         loadCSV(currentCrypto);
     });
     // ========================== {BOTÃO SOLANA} ==========================
     document.querySelector('.solana-btn').addEventListener('click', () => {
         currentCrypto = 'Solana';
+        localStorage.setItem('currentCrypto', currentCrypto); // Salva no localStorage
         currentChart = 'crypto';
         loadCSV(currentCrypto);
     });

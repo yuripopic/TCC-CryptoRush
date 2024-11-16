@@ -11,7 +11,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 SALDO_PATH = os.path.join(BASE_DIR, 'data', 'saldo.txt')
 SALDO_BOT_PATH = os.path.join(BASE_DIR, 'data', 'saldoBot.txt')
-COTACAO_PATH = os.path.join(BASE_DIR, 'data/cotacao-atual.csv')
+#COTACAO_PATH = os.path.join(BASE_DIR, 'data/cotacao-atual.csv')
 TRANSACOES_PATH = os.path.join(BASE_DIR, 'data/transacoes.csv')
 TRANSACOES_BOT_PATH = os.path.join(DATA_DIR, 'transacoesBot.csv')
 QUANTIDADE_PATH = os.path.join(BASE_DIR, 'data/quantidade.txt')
@@ -168,16 +168,16 @@ def ler_quantidades():
     return quantidades
 
 # Função para ler as cotações atuais das criptomoedas
-def ler_cotacoes():
-    cotacoes = {}
-    if os.path.exists(COTACAO_PATH):
-        with open(COTACAO_PATH, 'r') as file:
-            reader = csv.reader(file)
-            next(reader)  # Ignora o cabeçalho do arquivo CSV
-            for row in reader:
-                moeda, cotacao = row
-                cotacoes[moeda] = float(cotacao)  # Converte o valor da cotação para float
-    return cotacoes
+# def ler_cotacoes():
+#     cotacoes = {}
+#     if os.path.exists(COTACAO_PATH):
+#         with open(COTACAO_PATH, 'r') as file:
+#             reader = csv.reader(file)
+#             next(reader)  # Ignora o cabeçalho do arquivo CSV
+#             for row in reader:
+#                 moeda, cotacao = row
+#                 cotacoes[moeda] = float(cotacao)  # Converte o valor da cotação para float
+#     return cotacoes
 
 
 # Função para ler o arquivo transacoes.csv
@@ -439,12 +439,12 @@ def avancar_data():
         
         # Decisão do adversário de compra/venda
         resultado_investimentos = decisao_investimento_adversario()
-        resultado_vendas = decisao_venda_adversario()
+        #resultado_vendas = decisao_venda_adversario()
 
         return jsonify({
             "message": "Decisão do adversário tomada e semana avançada.",
             "investimentos": resultado_investimentos,
-            "vendas": resultado_vendas,
+            #"vendas": resultado_vendas,
             "nova_semana": nova_semana
         }), 200
     except Exception as e:
