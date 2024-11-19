@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     const comprarButton = document.querySelector('.verde');
     const venderButton = document.querySelector('.vermelho');
     const historyDiv = document.getElementById('history');
-    const advanceDateButton = document.querySelector('.advance-date');
 
     // Função para consultar o saldo
     async function getSaldo() {
@@ -66,9 +65,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             console.error('Erro ao avançar a data:', error);
         }
     }    
-
-    // Adiciona evento de clique ao botão "Avançar a data"
-    // advanceDateButton.addEventListener('click', avancarData);
 
     // Chama a função para carregar a semana quando a página for carregada
     await getSemana();
@@ -370,40 +366,45 @@ function addTransaction(type, valor, quantidade, moeda) {
     let playerBalances = [];
     let botBalances = [];
 
-    // Função para carregar os lucros iniciais dos arquivos
+    // Função para carregar os saldos iniciais
     async function loadInitialBalances() {
         try {
-            // Obter o lucro do jogador
-            const responsePlayer = await fetch('http://127.0.0.1:5000/get-lucro', {
-                method: 'POST', // Certifique-se de usar o método POST
-                headers: { 'Content-Type': 'application/json' },
-            });
-            const playerData = await responsePlayer.json();
-    
-            // Obter o lucro do adversário (bot)
-            const responseBot = await fetch('http://127.0.0.1:5000/get-lucro-bot', {
-                method: 'POST', // Certifique-se de usar o método POST
-                headers: { 'Content-Type': 'application/json' },
-            });
-            const botData = await responseBot.json();
-    
-            if (playerData.error || botData.error) {
-                console.error('Erro ao carregar lucros:', playerData.error || botData.error);
-                return;
+            // Obtém o lucro da semana atual para o jogador
+            const lucroSemanaJogador = await calcularLucro();
+            if (playerBalances.length === 0) {
+                playerBalances.push(lucroSemanaJogador); // Primeira semana
+            } else {
+                playerBalances.push(lucroSemanaJogador); // Adiciona o lucro da semana atual
             }
     
-            // Atualiza os balanços com os lucros
-            playerBalances.push(parseFloat(playerData.lucro));
-            botBalances.push(parseFloat(botData.lucro));
+            // Obtém o lucro da semana atual para o bot
+            const lucroSemanaBot = await calcularLucroBot();
+            if (botBalances.length === 0) {
+                botBalances.push(lucroSemanaBot); // Primeira semana
+            } else {
+                botBalances.push(lucroSemanaBot); // Adiciona o lucro da semana atual
+            }
     
-            console.log('Lucros carregados com sucesso:', {
-                player: playerData.lucro,
-                bot: botData.lucro
+            // Atualiza o histórico de semanas
+            if (weeks.length === 0) {
+                weeks.push(1); // Primeira semana
+            } else {
+                weeks.push(weeks[weeks.length - 1] + 1); // Adiciona a nova semana
+            }
+    
+            console.log("Histórico atualizado:", {
+                weeks,
+                playerBalances,
+                botBalances,
             });
+    
+            // Atualiza o gráfico com os novos dados
+            updateProfitChart();
+    
         } catch (error) {
-            console.error("Erro ao carregar lucros iniciais:", error);
+            console.error("Erro ao carregar os saldos acumulados:", error);
         }
-    }    
+    }            
 
     //Carrega a data do arquivo data/ano.txt
     //Função para carregar e definir a data máxima
@@ -481,118 +482,100 @@ function addTransaction(type, valor, quantidade, moeda) {
             });
     }    
 
-    // Cria o gráfico do histórico do preço de cada criptomoeda
     function createChart(labels, data, cryptoName) {
-        if (performanceChart) {
-            performanceChart.destroy();
-        }
-
-        performanceChart = new Chart(performanceChartCtx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: `${cryptoName}`,
-                    data: data,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1,
-                    fill: false,
-                    pointRadius: 0
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Preço (USD)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Data'
-                        }
-                    }
-                },
-                plugins: {
-                    zoom: {
-                        pan: {
-                            enabled: true,
-                            mode: 'xy',
-                            threshold: 10,
-                        },
-                        zoom: {
-                            wheel: {
-                                enabled: true,
-                                speed: 0.1,
-                            },
-                            pinch: {
-                                enabled: true,
-                            },
-                            mode: 'x',
-                            drag: {
-                                enabled: true,
-                                borderColor: 'rgba(0, 0, 0, 0.3)',
-                                borderWidth: 1,
-                                backgroundColor: 'rgba(0, 0, 0, 0.1)'
-                            },
-                        }
-                    }
-                },
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
-                },
-                hover: {
-                    mode: 'nearest',
-                    intersect: false,
-                }
+        try {
+            // Destrói o gráfico existente, se houver
+            if (performanceChart) {
+                performanceChart.destroy();
+                performanceChart = null; // Garante que a variável seja redefinida
+                console.log('Gráfico anterior destruído.');
             }
-        });
-    }
-
-    // Cria o gráfico de rendimento
-    function updateProfitChart() {
-        if (performanceChart) {
-            performanceChart.destroy();
-        }
-
-        const labels = Array.from({ length: playerBalances.length }, (_, i) => `Semana ${i + 1}`);
-        performanceChart = new Chart(performanceChartCtx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Rendimento do Jogador',
-                        data: playerBalances,
+    
+            performanceChart = new Chart(performanceChartCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `${cryptoName}`,
+                        data: data,
                         borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 2,
+                        borderWidth: 1,
                         fill: false,
-                        pointRadius: 1
-                    },
-                    {
-                        label: 'Rendimento do Bot',
-                        data: botBalances,
-                        borderColor: 'rgba(255, 99, 132, 1)',
-                        borderWidth: 2,
-                        fill: false,
-                        pointRadius: 1
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Preço (USD)' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Data' }
+                        }
                     }
-                ]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Saldo (USD)' }
-                    },
                 }
+            });
+    
+            console.log(`Gráfico para ${cryptoName} criado com sucesso.`);
+        } catch (error) {
+            console.error('Erro ao criar gráfico:', error);
+        }
+    }        
+
+    // Cria ou atualiza o gráfico de rendimento
+    async function updateProfitChart() {
+        try {
+            // Destrói o gráfico existente, se houver
+            if (performanceChart) {
+                performanceChart.destroy();
+                performanceChart = null;
+                console.log('Gráfico anterior destruído.');
             }
-        });
-    }
+    
+            // Cria um novo gráfico com os dados acumulados
+            performanceChart = new Chart(performanceChartCtx, {
+                type: 'line',
+                data: {
+                    labels: weeks.map(week => `Semana ${week}`), // Rótulos das semanas
+                    datasets: [
+                        {
+                            label: 'Rendimento do Jogador',
+                            data: playerBalances,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 2,
+                            fill: false,
+                            pointRadius: 1,
+                        },
+                        {
+                            label: 'Rendimento do Bot',
+                            data: botBalances,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 2,
+                            fill: false,
+                            pointRadius: 1,
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Lucro (USD)' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Semanas' }
+                        }
+                    }
+                }
+            });
+    
+            console.log('Gráfico de rendimento atualizado com sucesso.');
+    
+        } catch (error) {
+            console.error('Erro ao atualizar o gráfico de rendimento:', error);
+        }
+    }    
 
     // Função para avançar a data e atualizar o gráfico atual
     async function advanceDate() {
@@ -660,7 +643,9 @@ function addTransaction(type, valor, quantidade, moeda) {
         currentChart = 'profit';
         updateProfitChart();
     });
-    document.querySelector('.advance-date').addEventListener('click', advanceDate);
+    document.querySelector('.advance-date').addEventListener('click', () =>{
+        advanceDate();
+    });
 
     // Inicia carregando os dados da data máxima
     loadMaxDate();
@@ -670,11 +655,10 @@ function addTransaction(type, valor, quantidade, moeda) {
             const rendimentosResponse = await fetch('http://127.0.0.1:5000/get-rendimentos');
             const rendimentos = await rendimentosResponse.json();
     
-            let lucroTotal = 0;  // Variável para armazenar o lucro total
+            let lucroTotal = 0; // Variável para armazenar o lucro total
     
             if (Array.isArray(rendimentos)) {
                 for (const rendimento of rendimentos) {
-                    // Requisição para calcular o lucro da criptomoeda
                     const lucroResponse = await fetch('http://127.0.0.1:5000/get-lucro', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -684,21 +668,65 @@ function addTransaction(type, valor, quantidade, moeda) {
                     const lucroData = await lucroResponse.json();
                     const lucro = lucroData.lucro;
     
-                    // Somar o lucro da criptomoeda ao lucro total
-                    lucroTotal += lucro;
+                    lucroTotal += lucro; // Soma o lucro da criptomoeda ao total
                 }
+
+                // Adiciona o lucro total ao array de rendimentos
+                playerBalances.push(lucroTotal);
     
                 // Atualizar o valor do lucro total na interface
                 const lucroSpan = document.querySelector('#lucro');
                 lucroSpan.textContent = `Lucro: R$ ${lucroTotal.toFixed(2)}`;
+                
+                // Opcional: Retorna o lucro para ser usado em outra função
+                return lucroTotal;
+    
             } else {
                 console.error('Dados inesperados recebidos (não é uma array):', rendimentos);
+                return 0;
             }
         } catch (error) {
             console.error('Erro ao calcular o lucro:', error);
+            return 0;
+        }
+    }
+    
+    async function calcularLucroBot() {
+        try {
+            const rendimentosResponse = await fetch('http://127.0.0.1:5000/get-rendimentos-bot');
+            const rendimentos = await rendimentosResponse.json();
+    
+            let lucroTotalBot = 0;
+    
+            if (Array.isArray(rendimentos)) {
+                for (const rendimento of rendimentos) {
+                    const lucroResponse = await fetch('http://127.0.0.1:5000/get-lucro-bot', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ moeda: rendimento.moeda })
+                    });
+    
+                    const lucroData = await lucroResponse.json();
+                    const lucro = lucroData.lucro;
+    
+                    lucroTotalBot += lucro;
+                }
+
+                // Adiciona o lucro total ao array de rendimentos do bot
+                botBalances.push(lucroTotalBot);
+
+                return lucroTotalBot;
+            } else {
+                console.error('Dados inesperados recebidos (não é uma array):', rendimentos);
+                return 0;
+            }
+        } catch (error) {
+            console.error('Erro ao calcular o lucro do adversário:', error);
+            return 0;
         }
     }
 
-    calcularLucro();
+    await calcularLucro();
+    await calcularLucroBot();
 
 });

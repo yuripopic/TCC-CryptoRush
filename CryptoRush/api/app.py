@@ -10,7 +10,9 @@ CORS(app)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 SALDO_PATH = os.path.join(BASE_DIR, 'data', 'saldo.txt')
+LUCRO_PATH = os.path.join(BASE_DIR, 'data', 'lucro.txt')
 SALDO_BOT_PATH = os.path.join(BASE_DIR, 'data', 'saldoBot.txt')
+LUCRO_BOT_PATH = os.path.join(BASE_DIR, 'data', 'lucroBot.txt')
 #COTACAO_PATH = os.path.join(BASE_DIR, 'data/cotacao-atual.csv')
 TRANSACOES_PATH = os.path.join(BASE_DIR, 'data/transacoes.csv')
 TRANSACOES_BOT_PATH = os.path.join(DATA_DIR, 'transacoesBot.csv')
@@ -387,6 +389,10 @@ def limpar_arquivos():
         open(QUANTIDADE_BOT_PATH, 'w').close()
 
         open(MAX_DATE_PATH, 'w').close()
+
+        open(LUCRO_PATH, 'w').close()
+
+        open(LUCRO_BOT_PATH, 'w').close()
 
         # Limpa o arquivo transacoes.csv, mas preserva o cabeçalho
         with open(TRANSACOES_PATH, 'w', newline='') as file:
@@ -821,6 +827,40 @@ def atualizar_data():
             return jsonify({"message": "Data máxima atualizada com sucesso"}), 200
         else:
             return jsonify({"error": "Data não fornecida"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/save-lucro', methods=['POST'])
+def save_lucro():
+    try:
+        data = request.get_json()
+        lucro_total = data.get('lucro_total')
+
+        if lucro_total is None:
+            return jsonify({"error": "Lucro total não foi fornecido"}), 400
+
+        # Salva o lucro no arquivo
+        with open(LUCRO_PATH, 'w') as file:
+            file.write(f"{lucro_total:.2f}")
+
+        return jsonify({"message": "Lucro salvo com sucesso"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/save-lucro-bot', methods=['POST'])
+def save_lucro_bot():
+    try:
+        data = request.get_json()
+        lucro_total = data.get('lucro_total')
+
+        if lucro_total is None:
+            return jsonify({"error": "Lucro total não foi fornecido"}), 400
+
+        # Salva o lucro no arquivo
+        with open(LUCRO_BOT_PATH, 'w') as file:
+            file.write(f"{lucro_total:.2f}")
+
+        return jsonify({"message": "Lucro salvo com sucesso"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
