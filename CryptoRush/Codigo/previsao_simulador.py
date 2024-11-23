@@ -1,11 +1,9 @@
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler 
-from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error, mean_squared_error
 from concurrent.futures import ThreadPoolExecutor
-from keras.models import Sequential
-from keras.layers import Dense, LSTM
-import matplotlib.pyplot as plt
+from keras.models import Sequential # type: ignore
+from keras.layers import Dense, LSTM # type: ignore
 from pathlib import Path
 import os
 
