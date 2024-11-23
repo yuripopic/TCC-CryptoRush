@@ -443,12 +443,12 @@ def avancar_data():
         
         # Decisão do adversário de compra/venda
         resultado_investimentos = decisao_investimento_adversario()
-        #resultado_vendas = decisao_venda_adversario()
+        resultado_vendas = decisao_venda_adversario()
 
         return jsonify({
             "message": "Decisão do adversário tomada e semana avançada.",
             "investimentos": resultado_investimentos,
-            #"vendas": resultado_vendas,
+            "vendas": resultado_vendas,
             "nova_semana": nova_semana
         }), 200
     except Exception as e:
@@ -569,7 +569,7 @@ def decisao_investimento_adversario():
     if semana is None or saldo_bot == 0:
         return "Saldo insuficiente ou semana não encontrada."
     
-    criptomoedas = ['Bitcoin', 'BNB', 'Ethereum']
+    criptomoedas = ['Bitcoin', 'BNB', 'Ethereum','Solana']
     investimento_por_cripto = 0.05 * saldo_bot  # 5% do saldo do bot
     investimentos_realizados = []
 
@@ -577,7 +577,7 @@ def decisao_investimento_adversario():
         variacao_prevista = get_variacao_prevista(moeda, semana)  # Variação da semana seguinte
         cotacao_atual = get_cotacao_atual(moeda, semana)  # Cotação da semana atual
 
-        if variacao_prevista is not None and variacao_prevista < 0 and cotacao_atual is not None:
+        if variacao_prevista is not None and variacao_prevista > 0 and cotacao_atual is not None:
             quantidade = investimento_por_cripto / cotacao_atual
             saldo_bot -= investimento_por_cripto
             registrar_transacao_bot('Compra', investimento_por_cripto, quantidade, moeda)
@@ -708,21 +708,26 @@ def get_saldo_bot():
 
 def decisao_venda_adversario():
     semana = get_semana_atual()
-    saldo_bot = get_saldo_bot()
+    saldo_bot = get_bot_saldo()
     
-    if semana is None or saldo_bot == 0:
-        return "Saldo insuficiente ou semana não encontrada."
+    if semana is None:
+        return {"error": "Semana não encontrada."}
     
-    criptomoedas = ['Bitcoin', 'BNB', 'Ethereum']
+    if saldo_bot == 0:
+        return {"error": "Saldo insuficiente do adversário."}
+    
+    criptomoedas = ['Bitcoin', 'BNB', 'Ethereum', 'Solana']
     vendas_realizadas = []
 
     for moeda in criptomoedas:
-        variacao_prevista = get_variacao_prevista(moeda, semana + 1)  # Variação da semana seguinte
+        variacao_prevista = get_variacao_prevista(moeda, semana)  # Variação da semana seguinte
         cotacao_atual = get_cotacao_atual(moeda, semana)  # Cotação da semana atual
         quantidade_possuida = get_quantidade_bot(moeda)  # Quantidade que o bot possui
 
-        if variacao_prevista is not None and variacao_prevista > 0 and cotacao_atual is not None:
-            # Decide vender uma quantidade correspondente ao valor total investido na moeda
+        if quantidade_possuida == 0:
+            continue  # Não há o que vender
+        
+        if variacao_prevista is not None and variacao_prevista < 0 and cotacao_atual is not None:
             valor_venda = quantidade_possuida * cotacao_atual
             saldo_bot += valor_venda
             registrar_transacao_bot('Venda', valor_venda, quantidade_possuida, moeda)
@@ -736,10 +741,7 @@ def decisao_venda_adversario():
 
     atualizar_saldo_bot(saldo_bot)
 
-    if not vendas_realizadas:
-        return "Nenhuma venda realizada pelo adversário."
-    else:
-        return vendas_realizadas
+    return vendas_realizadas if vendas_realizadas else "Nenhuma venda realizada pelo adversário."
 
 def get_quantidade_bot(moeda):
     quantidade = 0
