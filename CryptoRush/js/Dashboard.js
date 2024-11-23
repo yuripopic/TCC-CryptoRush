@@ -41,31 +41,6 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     }    
     
-    // Função para avançar a data
-    async function avancarData() {
-        try {
-            const response = await fetch('http://127.0.0.1:5000/avancar-data', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            const data = await response.json();
-            if (data.error) {
-                console.error('Erro ao avançar a data:', data.error);
-            } else {
-                console.log('Decisão do adversário e avanço de semana:', data.message);
-                console.log('Investimentos do adversário:', data.investimentos);
-                console.log('Vendas do adversário', data.venda)
-                console.log('Nova semana:', data.nova_semana);
-                
-                // Atualizar a semana no frontend
-                const dataSpan = document.querySelector('.status span:nth-child(2)');
-                dataSpan.textContent = `Data: Semana ${data.nova_semana}`;
-            }
-        } catch (error) {
-            console.error('Erro ao avançar a data:', error);
-        }
-    }    
-
     // Chama a função para carregar a semana quando a página for carregada
     await getSemana();
 
@@ -369,42 +344,26 @@ function addTransaction(type, valor, quantidade, moeda) {
     // Função para carregar os saldos iniciais
     async function loadInitialBalances() {
         try {
-            // Obtém o lucro da semana atual para o jogador
-            const lucroSemanaJogador = await calcularLucro();
-            if (playerBalances.length === 0) {
-                playerBalances.push(lucroSemanaJogador); // Primeira semana
+            // Faz a requisição para obter os lucros acumulados do backend
+            const response = await fetch('http://127.0.0.1:5000/get-lucros');
+            const data = await response.json();
+    
+            if (Array.isArray(data)) {
+                // Atualiza os arrays com os lucros do jogador e do bot
+                playerBalances = data.map(entry => parseFloat(entry['Lucro Jogador']));
+                botBalances = data.map(entry => parseFloat(entry['Lucro Bot']));
+                weeks = data.map(entry => `Semana ${entry['Semana']}`);
+                console.log('Dados de lucros carregados:', data);
+    
+                // Atualiza o gráfico com os lucros acumulados
+                updateProfitChart();
             } else {
-                playerBalances.push(lucroSemanaJogador); // Adiciona o lucro da semana atual
+                console.error('Dados inesperados recebidos ao carregar lucros:', data);
             }
-    
-            // Obtém o lucro da semana atual para o bot
-            const lucroSemanaBot = await calcularLucroBot();
-            if (botBalances.length === 0) {
-                botBalances.push(lucroSemanaBot); // Primeira semana
-            } else {
-                botBalances.push(lucroSemanaBot); // Adiciona o lucro da semana atual
-            }
-    
-            // Atualiza o histórico de semanas
-            if (weeks.length === 0) {
-                weeks.push(1); // Primeira semana
-            } else {
-                weeks.push(weeks[weeks.length - 1] + 1); // Adiciona a nova semana
-            }
-    
-            console.log("Histórico atualizado:", {
-                weeks,
-                playerBalances,
-                botBalances,
-            });
-    
-            // Atualiza o gráfico com os novos dados
-            updateProfitChart();
-    
         } catch (error) {
-            console.error("Erro ao carregar os saldos acumulados:", error);
+            console.error('Erro ao carregar os lucros acumulados:', error);
         }
-    }            
+    }                 
 
     //Carrega a data do arquivo data/ano.txt
     //Função para carregar e definir a data máxima
@@ -537,7 +496,7 @@ function addTransaction(type, valor, quantidade, moeda) {
             performanceChart = new Chart(performanceChartCtx, {
                 type: 'line',
                 data: {
-                    labels: weeks.map(week => `Semana ${week}`), // Rótulos das semanas
+                    labels: weeks.map(week => `${week}`), // Rótulos das semanas
                     datasets: [
                         {
                             label: 'Rendimento do Jogador',
@@ -606,7 +565,27 @@ function addTransaction(type, valor, quantidade, moeda) {
         } else {
             updateProfitChart();
         }
-        avancarData();
+        try {
+            const response = await fetch('http://127.0.0.1:5000/avancar-data', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            if (data.error) {
+                console.error('Erro ao avançar a data:', data.error);
+            } else {
+                console.log('Decisão do adversário e avanço de semana:', data.message);
+                console.log('Investimentos do adversário:', data.investimentos);
+                console.log('Vendas do adversário', data.venda)
+                console.log('Nova semana:', data.nova_semana);
+
+                const lucroJogador = await calcularLucro();
+                const lucroBot = await calcularLucroBot();
+                salvarLucroCSV(data.nova_semana, lucroJogador, lucroBot);
+            }
+        } catch (error) {
+            console.error('Erro ao avançar a data:', error);
+        }
     }    
 
     // Adiciona os eventos de clique aos botões de criptomoeda / rendimento
@@ -726,7 +705,20 @@ function addTransaction(type, valor, quantidade, moeda) {
         }
     }
 
-    await calcularLucro();
-    await calcularLucroBot();
+    async function salvarLucroCSV(semana, lucroJogador, lucroBot) {
+        try {
+            await fetch('http://127.0.0.1:5000/salvar-lucro-csv', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ semana, lucroJogador, lucroBot }),
+            });
+            console.log("Lucros salvos no CSV com sucesso!");
+        } catch (error) {
+            console.error("Erro ao salvar os lucros no CSV:", error);
+        }
+    }
+
+    calcularLucro();
+    calcularLucroBot();
 
 });
