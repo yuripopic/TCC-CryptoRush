@@ -337,7 +337,7 @@ function addTransaction(type, valor, quantidade, moeda) {
     let maxDate; // Data que limita o grafico
     const LIMIT_DATE = new Date(2024, 7, 31); // 31 de agosto de 2024 (data final)
     let currentCrypto = localStorage.getItem('currentCrypto') || 'Bitcoin'; // Armazena a criptomoeda atual selecionada
-    let currentChart = 'crypto'; // Define o gráfico atual (crypto ou profit)
+    let currentChart = localStorage.getItem('currentChart') || 'crypto'; // Define o gráfico atual (crypto ou profit)
     let playerBalances = [];
     let botBalances = [];
 
@@ -578,11 +578,10 @@ function addTransaction(type, valor, quantidade, moeda) {
                 console.log('Investimentos do adversário:', data.investimentos);
                 console.log('Vendas do adversário', data.venda)
                 console.log('Nova semana:', data.nova_semana);
-
-                const lucroJogador = await calcularLucro();
-                const lucroBot = await calcularLucroBot();
-                salvarLucroCSV(data.nova_semana, lucroJogador, lucroBot);
             }
+            const lucroJogador = await calcularLucro();
+            const lucroBot = await calcularLucroBot();
+            salvarLucroCSV(data.nova_semana, lucroJogador, lucroBot);
         } catch (error) {
             console.error('Erro ao avançar a data:', error);
         }
@@ -594,6 +593,7 @@ function addTransaction(type, valor, quantidade, moeda) {
         currentCrypto = 'Bitcoin';
         localStorage.setItem('currentCrypto', currentCrypto); // Salva no localStorage
         currentChart = 'crypto';
+        localStorage.setItem('currentChart', currentChart);  // Salva no localStorage
         loadCSV(currentCrypto);
     });
     // ========================= {BOTÃO ETHEREUM} =========================
@@ -601,6 +601,7 @@ function addTransaction(type, valor, quantidade, moeda) {
         currentCrypto = 'Ethereum';
         localStorage.setItem('currentCrypto', currentCrypto); // Salva no localStorage
         currentChart = 'crypto';
+        localStorage.setItem('currentChart', currentChart);  // Salva no localStorage
         loadCSV(currentCrypto);
     });
     // =========================== {BOTÃO BNB} ===========================
@@ -608,6 +609,7 @@ function addTransaction(type, valor, quantidade, moeda) {
         currentCrypto = 'BNB';
         localStorage.setItem('currentCrypto', currentCrypto); // Salva no localStorage
         currentChart = 'crypto';
+        localStorage.setItem('currentChart', currentChart);  // Salva no localStorage
         loadCSV(currentCrypto);
     });
     // ========================== {BOTÃO SOLANA} ==========================
@@ -615,11 +617,13 @@ function addTransaction(type, valor, quantidade, moeda) {
         currentCrypto = 'Solana';
         localStorage.setItem('currentCrypto', currentCrypto); // Salva no localStorage
         currentChart = 'crypto';
+        localStorage.setItem('currentChart', currentChart);  // Salva no localStorage
         loadCSV(currentCrypto);
     });
     // ======================== {BOTÃO RENDIMENTO} ========================
     document.querySelector('.rendimento').addEventListener('click', () => {
         currentChart = 'profit';
+        localStorage.setItem('currentChart', currentChart);  // Salva no localStorage
         updateProfitChart();
     });
     document.querySelector('.advance-date').addEventListener('click', () =>{
