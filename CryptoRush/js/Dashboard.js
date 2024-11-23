@@ -622,6 +622,8 @@ function addTransaction(type, valor, quantidade, moeda) {
     });
     // ======================== {BOTÃO RENDIMENTO} ========================
     document.querySelector('.rendimento').addEventListener('click', () => {
+        currentCrypto = null;
+        localStorage.setItem('currentCrypto', currentCrypto); // Salva no localStorage
         currentChart = 'profit';
         localStorage.setItem('currentChart', currentChart);  // Salva no localStorage
         updateProfitChart();
