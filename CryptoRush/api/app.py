@@ -11,9 +11,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 SALDO_PATH = os.path.join(BASE_DIR, 'data', 'saldo.txt')
 SALDO_BOT_PATH = os.path.join(BASE_DIR, 'data', 'saldoBot.txt')
-#COTACAO_PATH = os.path.join(BASE_DIR, 'data/cotacao-atual.csv')
 TRANSACOES_PATH = os.path.join(BASE_DIR, 'data/transacoes.csv')
 TRANSACOES_BOT_PATH = os.path.join(DATA_DIR, 'transacoesBot.csv')
+LUCROS_PATH = os.path.join(DATA_DIR, 'lucros.csv')
 QUANTIDADE_PATH = os.path.join(BASE_DIR, 'data/quantidade.txt')
 QUANTIDADE_BOT_PATH = os.path.join(BASE_DIR, 'data/quantidadeBot.txt')
 ANO_PATH = os.path.join(BASE_DIR, 'data/ano.txt')
@@ -394,6 +394,10 @@ def limpar_arquivos():
         
         with open(TRANSACOES_BOT_PATH, 'w', newline='') as file:
             file.write('tipo,valor,quantidade,moeda\n')
+
+        with open(LUCROS_PATH, 'w', newline='') as file:
+            file.write('Semana,Lucro Jogador,Lucro Bot\n')
+            file.write('1,00.00,00.00\n')
 
         return jsonify({"message": "Arquivos limpos com sucesso"}), 200
     except Exception as e:
@@ -823,6 +827,49 @@ def atualizar_data():
             return jsonify({"error": "Data não fornecida"}), 400
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/salvar-lucro-csv', methods=['POST'])
+def salvar_lucro_csv():
+    try:
+        data = request.get_json()
+        semana = data.get('semana')
+        lucro_jogador = data.get('lucroJogador')
+        lucro_bot = data.get('lucroBot')
+
+        if not all([semana, lucro_jogador is not None, lucro_bot is not None]):
+            return jsonify({"error": "Dados incompletos para salvar o lucro"}), 400
+
+        csv_path = os.path.join(LUCROS_PATH)
+
+        # Verifica se o arquivo existe e escreve o cabeçalho se necessário
+        file_exists = os.path.isfile(csv_path)
+        with open(csv_path, 'a', newline='') as file:
+            writer = csv.writer(file)
+            if not file_exists:
+                writer.writerow(['Semana', 'Lucro Jogador', 'Lucro Bot'])
+            writer.writerow([semana, f'{lucro_jogador:.2f}', f'{lucro_bot:.2f}'])
+
+        return jsonify({"message": "Lucros salvos com sucesso no CSV"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/get-lucros', methods=['GET'])
+def get_lucros():
+    try:
+        lucros = []
+        if os.path.exists(LUCROS_PATH):
+            with open(LUCROS_PATH, 'r') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    lucros.append({
+                        "Semana": int(row['Semana']),
+                        "Lucro Jogador": float(row['Lucro Jogador']),
+                        "Lucro Bot": float(row['Lucro Bot'])
+                    })
+        return jsonify(lucros), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
