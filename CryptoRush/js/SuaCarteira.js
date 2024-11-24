@@ -57,7 +57,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
             if (Array.isArray(rendimentos)) {
                 for (const rendimento of rendimentos) {
-                    // Faz a requisição ao backend para obter a variação semanal e a nova cotação da moeda
                     const cotacaoResponse = await fetch('http://127.0.0.1:5000/get-cotacao', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -65,12 +64,10 @@ document.addEventListener("DOMContentLoaded", function() {
                     });
 
                     const cotacaoData = await cotacaoResponse.json();
-                    const cotacaoAtual = cotacaoData.cotacao;  // Nova cotação da criptomoeda
+                    const cotacaoAtual = cotacaoData.cotacao;
 
-                    // Recalcula o valor aplicado com base na nova cotação
                     const valorAplicadoAtualizado = cotacaoAtual * rendimento.quantidade;
 
-                    // Faz a requisição ao backend para obter a variação semanal da moeda
                     const variacaoResponse = await fetch('http://127.0.0.1:5000/get-variacao', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -80,7 +77,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     const variacaoData = await variacaoResponse.json();
                     let variacaoSemanal = variacaoData.variacao_real || "0.00%";
 
-                    // Formatar o valor percentual com 2 casas decimais
                     variacaoSemanal = parseFloat(variacaoSemanal).toFixed(2) + "%";
 
                     const row = document.createElement('tr');
