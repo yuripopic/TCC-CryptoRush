@@ -37,9 +37,9 @@ parametros_bitcoin = {
 
 # Melhor combinação de paramametro para as outras criptomoedas nas respectivas dificuldades
 parametros_outras = {
-    'dificil': {'neurons': 100, 'batch_size': 10, 'epochs': 20},
-    'normal': {'neurons': 100, 'batch_size': 10, 'epochs': 20},
-    'facil': {'neurons': 100, 'batch_size': 10, 'epochs': 20}
+    'dificil': {'neurons': 90, 'batch_size': 10, 'epochs': 20},
+    'normal': {'neurons': 90, 'batch_size': 10, 'epochs': 20},
+    'facil': {'neurons': 90, 'batch_size': 10, 'epochs': 20}
 }
 
 # Obter os parâmetros com base na dificuldade para Bitcoin e para outras criptomoedas
@@ -59,6 +59,19 @@ df_bitcoin = tratar_dados_cripto(arquivos['Bitcoin'])
 df_ethereum = tratar_dados_cripto(arquivos['Ethereum'])
 df_bnb = tratar_dados_cripto(arquivos['BNB'])
 df_solana = tratar_dados_cripto(arquivos['Solana'])
+
+# Função para diminuir a acertividade do bot no modo facil e normal
+def forcar_erros(df, taxa_erro_desejada):
+    # Calcular número de previsões a serem alteradas
+    n_modificar = int(len(df) * taxa_erro_desejada)
+    
+    # Selecionar índices aleatórios das previsões a modificar
+    indices_modificar = np.random.choice(df.index, size=n_modificar, replace=False)
+    
+    # Inverter o sinal das previsões selecionadas
+    df.loc[indices_modificar, 'Variação Prevista (%)'] *= -1
+    
+    return df
 
 
 def previsao(acao, neurons, batch_size, epochs, nome):
@@ -157,8 +170,8 @@ def previsao(acao, neurons, batch_size, epochs, nome):
     df_previsao_semanal.reset_index() 
     # Agrupar por semana e calcular o preço médio semanal das previsões
     df_semana = df_previsao_semanal.groupby('Semana').agg({
-        'predicoes': 'first',   # Previsão média por semana
-        'Price': 'first',      # Preço médio por semana
+        'predicoes': 'first',   # pegar a previsão do primeiro dia da semana
+        'Price': 'first',      # pegar o valor real do primeiro dia da semana
         'Date': 'first'        # Pega a primeira data da semana 
     })
 
@@ -172,6 +185,12 @@ def previsao(acao, neurons, batch_size, epochs, nome):
 
     # Remover NaN (primeira linha não terá variação por não ter valor anterior)
     # df_semana = df_semana.dropna()
+    
+    # Aplicar erro conforme a dificuldade
+    if dificuldade == 'normal':
+        df_semana = forcar_erros(df_semana, 0.50)  # Força erro em 50% das previsões
+    elif dificuldade == 'facil':
+        df_semana = forcar_erros(df_semana, 0.77)  # Força erro em 77% das previsões
 
     df_semana.to_csv(f"{caminho_arquivos}\previsão semanal - {nome}.csv")
 
