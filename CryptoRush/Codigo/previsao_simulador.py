@@ -80,10 +80,11 @@ def previsao(acao, neurons, batch_size, epochs, nome):
     escalador = MinMaxScaler(feature_range=(0, 1))
 
     dados_entre_0_e_1_treinamento = escalador.fit_transform(cotacao[0: tamanho_dados_treinamento, :])
-    dados_entre_0_e_1_restantes = escalador.transform(cotacao[tamanho_dados_treinamento: , :])
+
+    dados_entre_0_e_1_teste = escalador.transform(cotacao[tamanho_dados_treinamento: , :])
 
     dados_entre_0_e_1 = list(dados_entre_0_e_1_treinamento.reshape(
-        len(dados_entre_0_e_1_treinamento))) + list(dados_entre_0_e_1_restantes.reshape(len(dados_entre_0_e_1_restantes)))
+        len(dados_entre_0_e_1_treinamento))) + list(dados_entre_0_e_1_teste.reshape(len(dados_entre_0_e_1_teste)))
                                                     
     dados_entre_0_e_1 = np.array(dados_entre_0_e_1).reshape(len(dados_entre_0_e_1), 1)
     dados_para_treinamento = dados_entre_0_e_1[0: tamanho_dados_treinamento, :]
@@ -122,26 +123,24 @@ def previsao(acao, neurons, batch_size, epochs, nome):
 
     dados_teste = dados_entre_0_e_1[tamanho_dados_treinamento - 60:, :]
 
-    predicao_x = []
+    teste_x = []
 
     for i in range(60, len(dados_teste)):
-        predicao_x.append(dados_teste[i - 60: i, 0])
+        teste_x.append(dados_teste[i - 60: i, 0])
 
-    # Reshape
-    predicao_x = np.array(predicao_x)
-    predicao_x = predicao_x.reshape(predicao_x.shape[0], predicao_x.shape[1], 1)
+   # Reshape
+    teste_x = np.array(teste_x)
+    teste_x = teste_x.reshape(teste_x.shape[0], teste_x.shape[1], 1)
 
     # Pegando predições do modelo
-    predicoes = modelo.predict(predicao_x)
-
-    # Tirando a escala dos dados
+    predicoes = modelo.predict(teste_x)
     predicoes = escalador.inverse_transform(predicoes)
 
     # dados do modelo
     treinamento = acao.iloc[:tamanho_dados_treinamento, :]
     df_previsao = pd.DataFrame({"Date": acao['Date'].iloc[tamanho_dados_treinamento:],
-                                "Price": acao['Price'].iloc[tamanho_dados_treinamento:],
-                                "predicoes": predicoes.reshape(len(predicoes))})
+                            "Price": acao['Price'].iloc[tamanho_dados_treinamento:],
+                            "predicoes": predicoes.reshape(len(predicoes))})
     
     # Setar a data como index dos df (df_previsao e treinamento)
     df_previsao.set_index('Date', inplace=True)
@@ -158,8 +157,8 @@ def previsao(acao, neurons, batch_size, epochs, nome):
     df_previsao_semanal.reset_index() 
     # Agrupar por semana e calcular o preço médio semanal das previsões
     df_semana = df_previsao_semanal.groupby('Semana').agg({
-        'predicoes': 'mean',   # Previsão média por semana
-        'Price': 'mean',       # Preço médio por semana
+        'predicoes': 'first',   # Previsão média por semana
+        'Price': 'first',      # Preço médio por semana
         'Date': 'first'        # Pega a primeira data da semana 
     })
 
