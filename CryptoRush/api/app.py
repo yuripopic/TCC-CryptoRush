@@ -167,19 +167,6 @@ def ler_quantidades():
                 quantidades[moeda] = float(quantidade)
     return quantidades
 
-# Função para ler as cotações atuais das criptomoedas
-# def ler_cotacoes():
-#     cotacoes = {}
-#     if os.path.exists(COTACAO_PATH):
-#         with open(COTACAO_PATH, 'r') as file:
-#             reader = csv.reader(file)
-#             next(reader)  # Ignora o cabeçalho do arquivo CSV
-#             for row in reader:
-#                 moeda, cotacao = row
-#                 cotacoes[moeda] = float(cotacao)  # Converte o valor da cotação para float
-#     return cotacoes
-
-
 # Função para ler o arquivo transacoes.csv
 def ler_transacoes():
     transacoes = []
@@ -443,7 +430,11 @@ def avancar_data():
         
         # Decisão do adversário de compra/venda
         resultado_investimentos = decisao_investimento_adversario()
-        resultado_vendas = decisao_venda_adversario()
+        if semana_atual != 2:
+            resultado_vendas = decisao_venda_adversario()
+        else:
+            resultado_vendas = "NENHUMA VENDA!"
+            print(resultado_vendas)
 
         return jsonify({
             "message": "Decisão do adversário tomada e semana avançada.",
@@ -563,6 +554,7 @@ def get_variacao_prevista(moeda, semana):
 
 # Função para decisão de investimento do adversário
 def decisao_investimento_adversario():
+    tipo = 'Compra'
     semana = get_semana_atual()
     saldo_bot = get_bot_saldo()
     
@@ -570,16 +562,28 @@ def decisao_investimento_adversario():
         return "Saldo insuficiente ou semana não encontrada."
     
     criptomoedas = ['Bitcoin', 'BNB', 'Ethereum','Solana']
-    investimento_por_cripto = 0.05 * saldo_bot  # 5% do saldo do bot
+    
     investimentos_realizados = []
 
     for moeda in criptomoedas:
+
         variacao_prevista = get_variacao_prevista(moeda, semana)  # Variação da semana seguinte
         cotacao_atual = get_cotacao_atual(moeda, semana)  # Cotação da semana atual
+
+        if variacao_prevista <= 2:
+            investimento_por_cripto = 0.05 * saldo_bot
+
+        elif variacao_prevista <= 10:
+            investimento_por_cripto = 0.15 * saldo_bot
+
+        else:
+            investimento_por_cripto = 0.2 * saldo_bot
 
         if variacao_prevista is not None and variacao_prevista > 0 and cotacao_atual is not None:
             quantidade = investimento_por_cripto / cotacao_atual
             saldo_bot -= investimento_por_cripto
+            print("MANDANDO PARA ATUALIZAR QUANTIDADE: " + moeda,quantidade,tipo)
+            atualizar_quantidade_bot(moeda,quantidade,tipo)
             registrar_transacao_bot('Compra', investimento_por_cripto, quantidade, moeda)
             investimentos_realizados.append({
                 "moeda": moeda,
@@ -593,33 +597,45 @@ def decisao_investimento_adversario():
         return "Nenhum investimento realizado pelo adversário."
     else:
         return investimentos_realizados
-    
+
+def calcular_valor_e_quantidade_bot():
+    transacoes = {}
+    if os.path.exists(TRANSACOES_BOT_PATH):
+        with open(TRANSACOES_BOT_PATH, 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                moeda = row['moeda']
+                tipo = row['tipo']
+                valor = float(row['valor'])
+                quantidade = float(row['quantidade'])
+                
+                if moeda not in transacoes:
+                    transacoes[moeda] = {'valor': 0, 'quantidade': 0}
+
+                # Somar se for uma compra e subtrair se for uma venda
+                if tipo == 'Compra':
+                    transacoes[moeda]['valor'] += valor
+                    transacoes[moeda]['quantidade'] += quantidade
+                elif tipo == 'Venda':
+                    transacoes[moeda]['valor'] -= valor
+                    transacoes[moeda]['quantidade'] -= quantidade
+
+    return transacoes
+
 @app.route('/get-rendimentos-bot', methods=['GET'])
 def get_rendimentos_bot():
     try:
-        rendimentos = {}
-        if os.path.exists(TRANSACOES_BOT_PATH):
-            with open(TRANSACOES_BOT_PATH, 'r') as file:
-                reader = csv.DictReader(file)
-                for row in reader:
-                    moeda = row['moeda']
-                    quantidade = float(row['quantidade'])
-                    valor_investido = float(row['valor'])
+        transacoes = calcular_valor_e_quantidade_bot()
 
-                    # Agrupa as transações da mesma moeda
-                    if moeda in rendimentos:
-                        rendimentos[moeda]['quantidade'] += quantidade
-                        rendimentos[moeda]['valor_investido'] += valor_investido
-                    else:
-                        rendimentos[moeda] = {
-                            "moeda": moeda,
-                            "quantidade": quantidade,
-                            "valor_investido": valor_investido
-                        }
-        
-        # Converte o dicionário em uma lista para envio ao frontend
-        rendimentos_lista = list(rendimentos.values())
-        return jsonify(rendimentos_lista), 200
+        rendimentos = []
+        for moeda, dados in transacoes.items():
+            rendimentos.append({
+                'moeda': moeda,
+                'valor_aplicado': dados['valor'],
+                'quantidade': dados['quantidade']
+            })
+
+        return jsonify(rendimentos), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -707,67 +723,91 @@ def get_saldo_bot():
         return jsonify({"error": str(e)}), 500
 
 def decisao_venda_adversario():
+    tipo = 'Venda'
+    zerarQuantidade = 0
     semana = get_semana_atual()
     saldo_bot = get_bot_saldo()
-    
+
     if semana is None:
-        return {"error": "Semana não encontrada."}
-    
-    if saldo_bot == 0:
-        return {"error": "Saldo insuficiente do adversário."}
+        return "Saldo insuficiente ou semana não encontrada."
     
     criptomoedas = ['Bitcoin', 'BNB', 'Ethereum', 'Solana']
+
     vendas_realizadas = []
 
     for moeda in criptomoedas:
+
         variacao_prevista = get_variacao_prevista(moeda, semana)  # Variação da semana seguinte
         cotacao_atual = get_cotacao_atual(moeda, semana)  # Cotação da semana atual
         quantidade_possuida = get_quantidade_bot(moeda)  # Quantidade que o bot possui
+        print("QUANTIDADE QUE POSSUI DE" + moeda,quantidade_possuida)
 
         if quantidade_possuida == 0:
+            print("NÃO HÁ O QUE VENDER")
             continue  # Não há o que vender
         
         if variacao_prevista is not None and variacao_prevista < 0 and cotacao_atual is not None:
             valor_venda = quantidade_possuida * cotacao_atual
             saldo_bot += valor_venda
+            atualizar_quantidade_bot(moeda,zerarQuantidade,tipo)
             registrar_transacao_bot('Venda', valor_venda, quantidade_possuida, moeda)
             vendas_realizadas.append({
                 "moeda": moeda,
                 "valor_vendido": valor_venda,
                 "quantidade": quantidade_possuida
-            })
-            # Remove toda a quantidade da moeda
-            atualizar_quantidade_bot(moeda, 0)
+            })            
 
     atualizar_saldo_bot(saldo_bot)
 
-    return vendas_realizadas if vendas_realizadas else "Nenhuma venda realizada pelo adversário."
+    if not vendas_realizadas:
+        return "Nenhuma venda foi realizada pelo adversário."
+    else:
+        return vendas_realizadas
 
 def get_quantidade_bot(moeda):
-    quantidade = 0
     if os.path.exists(QUANTIDADE_BOT_PATH):
         with open(QUANTIDADE_BOT_PATH, 'r') as file:
-            reader = csv.DictReader(file)
+            reader = csv.reader(file)
             for row in reader:
-                if row['moeda'] == moeda:
-                    quantidade = float(row['quantidade'])
-    return quantidade
+                moeda_existente, quantidade = row[0], float(row[1])
+                if moeda_existente == moeda:
+                    return quantidade
+    return 0.0
 
-def atualizar_quantidade_bot(moeda, nova_quantidade):
-    linhas = []
+def ler_quantidades_bot():
+    quantidades = {}
     if os.path.exists(QUANTIDADE_BOT_PATH):
         with open(QUANTIDADE_BOT_PATH, 'r') as file:
-            reader = csv.DictReader(file)
+            reader = csv.reader(file)
             for row in reader:
-                if row['moeda'] == moeda:
-                    row['quantidade'] = nova_quantidade
-                linhas.append(row)
-    # Atualiza o arquivo quantidade_bot
+                moeda,quantidade = row
+                quantidades[moeda] = float(quantidade)
+    return quantidades
+
+def atualizar_quantidade_bot(moeda, quantidade, tipo):
+    try:
+        print("DEBUG ATUALIZA QUANTIDADE:", moeda, quantidade, tipo)
+        
+        quantidades = ler_quantidades_bot()
+
+        if tipo == 'Compra':
+            quantidades[moeda] = quantidades.get(moeda,0) + quantidade
+        elif tipo == 'Venda':
+            if moeda in quantidades and quantidades[moeda] >= quantidade:
+                quantidades[moeda] = quantidade
+                if quantidades[moeda] < 0:
+                    quantidades[moeda] = 0
+
+        print("DEBUG SALVA QUANTIDADE:", quantidades)
+        salvar_quantidades_bot(quantidades)
+    except Exception as e:
+        print(f"Erro ao atualizar quantidade: {e}")
+
+def salvar_quantidades_bot(quantidades):
     with open(QUANTIDADE_BOT_PATH, 'w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=['moeda', 'quantidade'])
-        writer.writeheader()
-        writer.writerows(linhas)
-
+        writer = csv.writer(file)
+        for moeda, quantidade in quantidades.items():
+            writer.writerow([moeda, quantidade])
 
 # Endpoint para calcular o lucro
 @app.route('/get-lucro', methods=['POST'])
