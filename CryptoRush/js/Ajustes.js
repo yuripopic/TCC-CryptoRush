@@ -93,6 +93,7 @@ function validarCampos() {
                     console.log('Arquivos limpos com sucesso:', data.message);
                 }
                 // Redireciona para o Dashboard após salvar e limpar arquivos
+                //rodarScript();
                 window.location.href = 'Dashboard.html';
             })
             .catch(error => {
@@ -119,6 +120,45 @@ function validarCampos() {
                 console.error('Erro ao salvar semana:', error);
             });
         });
+    }
+}
+
+async function rodarScript() {
+    // Adiciona a tela de carregamento
+    const carregamentoDiv = document.createElement('div');
+    carregamentoDiv.id = 'carregamento';
+    carregamentoDiv.style.position = 'fixed';
+    carregamentoDiv.style.top = '0';
+    carregamentoDiv.style.left = '0';
+    carregamentoDiv.style.width = '100%';
+    carregamentoDiv.style.height = '100%';
+    carregamentoDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    carregamentoDiv.style.color = 'white';
+    carregamentoDiv.style.display = 'flex';
+    carregamentoDiv.style.justifyContent = 'center';
+    carregamentoDiv.style.alignItems = 'center';
+    carregamentoDiv.innerHTML = '<h1>Carregando, por favor aguarde...</h1>';
+    document.body.appendChild(carregamentoDiv);
+
+    try {
+        // Faz a chamada para o script Python
+        const response = await fetch('http://127.0.0.1:5000/executar-previsao', { method: 'POST' });
+        const result = await response.json();
+
+        if (result.success) {
+            console.log('Script executado com sucesso. Redirecionando...');
+            setTimeout(() => {
+                //window.location.href = 'Dashboard.html';
+            }, 1000); // Pequeno delay para o redirecionamento parecer mais natural
+        } else {
+            throw new Error(result.message || 'Erro ao executar o script.');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+        Swal.fire('Ocorreu um erro ao iniciar o jogo. Tente novamente.');
+    } finally {
+        // Remove a tela de carregamento
+        document.body.removeChild(carregamentoDiv);
     }
 }
 
