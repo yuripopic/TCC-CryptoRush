@@ -147,4 +147,16 @@ label {
     font-size: 16px;
 }
 
+#carregamento h1 {
+    font-size: 24px;
+    animation: pisca 1s infinite;
+}
 
+@keyframes pisca {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}

@@ -292,28 +292,7 @@ venderButton.addEventListener('click', validarVenda);
         .catch(error => {
             console.error('Erro ao salvar transação:', error);
         });
-    }    
-
-    // Função para carregar as transações do backend (CSV)
-    async function loadTransactions() {
-        await fetch('http://127.0.0.1:5000/carregar-transacoes')
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    console.error('Erro ao carregar transações:', data.error);
-                } else {
-                    // Adiciona as transações ao histórico
-                    data.forEach(trans => {
-                        const transaction = document.createElement('p');
-                        transaction.textContent = `${trans.tipo}: ${trans.quantidade.toFixed(8)} de ${trans.moeda} por R$ ${trans.valor.toFixed(2)}`;
-                        historyDiv.appendChild(transaction);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao carregar transações:', error);
-            });
-    }    
+    }     
 
 // Função para registrar a transação no backend e atualizar a quantidade
 function addTransaction(type, valor, quantidade, moeda) {
@@ -328,7 +307,6 @@ function addTransaction(type, valor, quantidade, moeda) {
     atualizarQuantidade(type, quantidade, moeda);
 }
 
-    
     // Adiciona evento de clique para o botão "Comprar"
     comprarButton.addEventListener('click', validarCompra);
 
@@ -724,7 +702,33 @@ function addTransaction(type, valor, quantidade, moeda) {
         }
     }
 
+    async function carregarTransacoes() {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/get-transacoes');
+            const transacoes = await response.json();
+    
+            if (Array.isArray(transacoes)) {
+                const historyDiv = document.getElementById('history');
+                historyDiv.innerHTML = ''; // Limpa o histórico anterior
+    
+                transacoes.forEach(transacao => {
+                    const { tipo, valor, quantidade, moeda } = transacao;
+                    const transacaoElement = document.createElement('p');
+                    transacaoElement.textContent = `${tipo}: ${quantidade} ${moeda} por R$ ${valor}`;
+                    historyDiv.appendChild(transacaoElement);
+                });
+    
+                console.log('Transações carregadas com sucesso.');
+            } else {
+                console.error('Erro ao carregar transações:', transacoes.error || 'Dados inválidos');
+            }
+        } catch (error) {
+            console.error('Erro ao buscar as transações:', error);
+        }
+    }    
+
     calcularLucro();
     calcularLucroBot();
+    carregarTransacoes();
 
 });

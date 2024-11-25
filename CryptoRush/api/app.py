@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import csv
 import os
+import subprocess
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +21,7 @@ ANO_PATH = os.path.join(BASE_DIR, 'data/ano.txt')
 DIFICULDADE_PATH = os.path.join(BASE_DIR, 'data/dificuldade.txt')
 SEMANA_PATH = os.path.join(BASE_DIR, 'data/semana.txt')
 MAX_DATE_PATH = os.path.join(BASE_DIR, 'data/maxDate.txt')
+PREVISAO_SIMULADOR_PATH = os.path.join(BASE_DIR, 'Codigo/previsao_simulador.py')
 
 @app.route('/get-saldo', methods=['GET'])
 def get_saldo():
@@ -134,27 +136,7 @@ def registrar_transacao():
 
         return jsonify({"message": "Transação registrada com sucesso"}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-# Função para carregar as transações do arquivo CSV
-@app.route('/carregar-transacoes', methods=['GET'])
-def carregar_transacoes():
-    try:
-        transacoes = []
-        with open(TRANSACOES_PATH, mode='r') as file:
-            reader = csv.reader(file)
-            for row in reader:
-                transacoes.append({
-                    "tipo": row[0],
-                    "valor": float(row[1]),
-                    "quantidade": float(row[2]),
-                    "moeda": row[3]
-                })
-        return jsonify(transacoes), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
+        return jsonify({"error": str(e)}), 500 
 
 # Função para ler o arquivo quantidade.txt
 def ler_quantidades():
@@ -167,22 +149,18 @@ def ler_quantidades():
                 quantidades[moeda] = float(quantidade)
     return quantidades
 
-# Função para ler o arquivo transacoes.csv
-def ler_transacoes():
-    transacoes = []
-    if os.path.exists(TRANSACOES_PATH):
-        with open(TRANSACOES_PATH, 'r') as file:
-            reader = csv.reader(file)
-            next(reader)  # Ignora o cabeçalho, se houver
-            for row in reader:
-                tipo, valor, quantidade, moeda = row
-                transacoes.append({
-                    'tipo': tipo,
-                    'valor': float(valor),
-                    'quantidade': float(quantidade),
-                    'moeda': moeda
-                })
-    return transacoes
+@app.route('/get-transacoes', methods=['GET'])
+def get_transacoes():
+    try:
+        transacoes = []
+        if os.path.exists(TRANSACOES_PATH):
+            with open(TRANSACOES_PATH, 'r') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    transacoes.append(row)
+        return jsonify(transacoes), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # Função para ler o saldo do arquivo saldo.txt
 def ler_saldo():
@@ -912,6 +890,17 @@ def get_lucros():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/executar-previsao', methods=['POST'])
+def executar_previsao():
+    try:
+        result = subprocess.run(["python", PREVISAO_SIMULADOR_PATH], capture_output=True, text=True)
+
+        if result.returncode == 0:
+            return jsonify({"success": True, "message": "Script executado com sucesso."})
+        else:
+            return jsonify({"success": False, "message": result.stderr}), 500
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
