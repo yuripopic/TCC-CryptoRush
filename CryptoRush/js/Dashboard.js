@@ -205,26 +205,27 @@ async function validarVenda() {
         return;
     }
 
-    // Atualiza o saldo após a venda
-    const novoSaldo = saldo + valorVendido;
-    await atualizarSaldo(novoSaldo);
-
     Swal.fire({
         title: 'Sucesso',
         text: `Venda realizada! Você vendeu ${quantidadeVendida.toFixed(8)} de ${moedaSelecionada} por R$ ${valorVendido.toFixed(2)}`,
         icon: 'success',
         confirmButtonText: 'OK'
+    }).then(async (result) => {
+        // Atualiza o saldo após a venda
+        const novoSaldo = saldo + valorVendido;
+        await atualizarSaldo(novoSaldo);
+        if (result.isConfirmed) { // Verifica se o botão "OK" foi pressionado
+            // Atualiza a quantidade de criptomoeda no backend após a venda
+            //atualizarQuantidade('Venda', quantidadeVendida, moedaSelecionada);
+
+            // Atualiza o histórico
+            addTransaction('Venda', valorVendido, quantidadeVendida, moedaSelecionada);
+
+            // Atualiza o campo "Caixa atual" com o novo saldo
+            const caixaAtualSpan = document.querySelector('.status span:first-child');
+            caixaAtualSpan.textContent = `Caixa atual: R$ ${novoSaldo.toFixed(2)}`;
+        }
     });
-
-    // Atualiza a quantidade de criptomoeda no backend após a venda
-    //atualizarQuantidade('Venda', quantidadeVendida, moedaSelecionada);
-
-    // Atualiza o histórico
-    addTransaction('Venda', valorVendido, quantidadeVendida, moedaSelecionada);
-
-    // Atualiza o campo "Caixa atual" com o novo saldo
-    const caixaAtualSpan = document.querySelector('.status span:first-child');
-    caixaAtualSpan.textContent = `Caixa atual: R$ ${novoSaldo.toFixed(2)}`;
 }
 
 
@@ -725,10 +726,35 @@ function addTransaction(type, valor, quantidade, moeda) {
         } catch (error) {
             console.error('Erro ao buscar as transações:', error);
         }
-    }    
+    }
+    
+    async function verificarAnoEAtualizarSelect() {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/get-ano');
+            if (!response.ok) {
+                throw new Error("Erro ao carregar o ano.");
+            }
+            const data = await response.json();
+            const ano = data.ano;
+    
+            if (ano === 2020 || ano === 2021) {
+                const solanaOption = document.querySelector('select#moeda option[value="Solana"]');
+                if (solanaOption) {
+                    solanaOption.style.display = 'none'; // Ocultar a opção
+                }
+                const solanaButton = document.querySelector('button.solana-btn');
+                if (solanaButton) {
+                    solanaButton.style.display = 'none'; // Ocultar o botão
+                }
+            }
+        } catch (error) {
+            console.error("Erro ao verificar o ano:", error);
+        }
+    }
 
     calcularLucro();
     calcularLucroBot();
     carregarTransacoes();
+    verificarAnoEAtualizarSelect();
 
 });

@@ -535,11 +535,15 @@ def decisao_investimento_adversario():
     tipo = 'Compra'
     semana = get_semana_atual()
     saldo_bot = get_bot_saldo()
+    ano = get_ano()
     
     if semana is None or saldo_bot == 0:
         return "Saldo insuficiente ou semana não encontrada."
     
-    criptomoedas = ['Bitcoin', 'BNB', 'Ethereum','Solana']
+    if ano == 2020 or ano == 2021:
+        criptomoedas = ['Bitcoin', 'BNB', 'Ethereum']
+    else:
+        criptomoedas = ['Bitcoin', 'BNB', 'Ethereum','Solana']
     
     investimentos_realizados = []
 
@@ -705,11 +709,15 @@ def decisao_venda_adversario():
     zerarQuantidade = 0
     semana = get_semana_atual()
     saldo_bot = get_bot_saldo()
+    ano = get_ano()
 
     if semana is None:
         return "Saldo insuficiente ou semana não encontrada."
     
-    criptomoedas = ['Bitcoin', 'BNB', 'Ethereum', 'Solana']
+    if ano == 2020 or ano == 2021:
+        criptomoedas = ['Bitcoin', 'BNB', 'Ethereum']
+    else:
+        criptomoedas = ['Bitcoin', 'BNB', 'Ethereum','Solana']
 
     vendas_realizadas = []
 
@@ -901,6 +909,19 @@ def executar_previsao():
             return jsonify({"success": False, "message": result.stderr}), 500
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route('/get-ano', methods=['GET'])
+def get_ano_rota():
+    try:
+        if os.path.exists(ANO_PATH):
+            with open(ANO_PATH, 'r') as file:
+                ano = int(file.read().strip())
+            return jsonify({"ano": ano}), 200
+        else:
+            return jsonify({"error": "Arquivo ano.txt não encontrado"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
