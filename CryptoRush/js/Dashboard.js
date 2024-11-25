@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const saldo = await getSaldo();
     if (saldo !== null) {
         const caixaAtualSpan = document.querySelector('.status span:first-child');
-        caixaAtualSpan.textContent = `Caixa atual: R$ ${saldo.toFixed(2)}`;
+        caixaAtualSpan.textContent = `Caixa atual: US$ ${saldo.toFixed(2)}`;
     }
 
     // Função para consultar a cotação da criptomoeda
@@ -130,7 +130,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         if (valorAplicado > saldo) {
             Swal.fire({
                 title: 'Saldo insuficiente',
-                text: `O valor aplicado excede o saldo disponível de R$ ${saldo.toFixed(2)}`,
+                text: `O valor aplicado excede o saldo disponível de US$ ${saldo.toFixed(2)}`,
                 icon: 'warning',
                 confirmButtonText: 'OK'
             });
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         Swal.fire({
             title: 'Sucesso',
-            text: `Compra realizada! Você comprou ${quantidade.toFixed(8)} de ${moedaSelecionada} por R$ ${valorAplicado.toFixed(2)}`,
+            text: `Compra realizada! Você comprou ${quantidade.toFixed(8)} de ${moedaSelecionada} por US$ ${valorAplicado.toFixed(2)}`,
             icon: 'success',
             confirmButtonText: 'OK'
         }).then(async (result) => {
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
                 // Atualiza o campo "Caixa atual" com o novo saldo
                 const caixaAtualSpan = document.querySelector('.status span:first-child');
-                caixaAtualSpan.textContent = `Caixa atual: R$ ${novoSaldo.toFixed(2)}`;
+                caixaAtualSpan.textContent = `Caixa atual: US$ ${novoSaldo.toFixed(2)}`;
             }
         });
     }
@@ -207,7 +207,7 @@ async function validarVenda() {
 
     Swal.fire({
         title: 'Sucesso',
-        text: `Venda realizada! Você vendeu ${quantidadeVendida.toFixed(8)} de ${moedaSelecionada} por R$ ${valorVendido.toFixed(2)}`,
+        text: `Venda realizada! Você vendeu ${quantidadeVendida.toFixed(8)} de ${moedaSelecionada} por US$ ${valorVendido.toFixed(2)}`,
         icon: 'success',
         confirmButtonText: 'OK'
     }).then(async (result) => {
@@ -223,7 +223,7 @@ async function validarVenda() {
 
             // Atualiza o campo "Caixa atual" com o novo saldo
             const caixaAtualSpan = document.querySelector('.status span:first-child');
-            caixaAtualSpan.textContent = `Caixa atual: R$ ${novoSaldo.toFixed(2)}`;
+            caixaAtualSpan.textContent = `Caixa atual: US$ ${novoSaldo.toFixed(2)}`;
         }
     });
 }
@@ -298,7 +298,7 @@ venderButton.addEventListener('click', validarVenda);
 // Função para registrar a transação no backend e atualizar a quantidade
 function addTransaction(type, valor, quantidade, moeda) {
     const transaction = document.createElement('p');
-    transaction.textContent = `${type}: ${quantidade.toFixed(8)} de ${moeda} por R$ ${valor.toFixed(2)}`;
+    transaction.textContent = `${type}: ${quantidade.toFixed(8)} de ${moeda} por US$ ${valor.toFixed(2)}`;
     historyDiv.appendChild(transaction);
 
     // Salva a transação no CSV via backend
@@ -640,7 +640,7 @@ function addTransaction(type, valor, quantidade, moeda) {
     
                 // Atualizar o valor do lucro total na interface
                 const lucroSpan = document.querySelector('#lucro');
-                lucroSpan.textContent = `Lucro: R$ ${lucroTotal.toFixed(2)}`;
+                lucroSpan.textContent = `Lucro: US$ ${lucroTotal.toFixed(2)}`;
                 
                 // Opcional: Retorna o lucro para ser usado em outra função
                 return lucroTotal;
@@ -715,7 +715,7 @@ function addTransaction(type, valor, quantidade, moeda) {
                 transacoes.forEach(transacao => {
                     const { tipo, valor, quantidade, moeda } = transacao;
                     const transacaoElement = document.createElement('p');
-                    transacaoElement.textContent = `${tipo}: ${quantidade} ${moeda} por R$ ${valor}`;
+                    transacaoElement.textContent = `${tipo}: ${quantidade} ${moeda} por US$ ${valor}`;
                     historyDiv.appendChild(transacaoElement);
                 });
     
