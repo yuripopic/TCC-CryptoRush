@@ -446,15 +446,53 @@ function addTransaction(type, valor, quantidade, moeda) {
                     scales: {
                         y: {
                             beginAtZero: true,
-                            title: { display: true, text: 'Preço (USD)' }
+                            title: {
+                                display: true,
+                                text: 'Preço (USD)'
+                            }
                         },
                         x: {
-                            title: { display: true, text: 'Data' }
+                            title: {
+                                display: true,
+                                text: 'Data'
+                            }
                         }
+                    },
+                    plugins: {
+                        zoom: {
+                            pan: {
+                                enabled: true,
+                                mode: 'xy',
+                                threshold: 10,
+                            },
+                            zoom: {
+                                wheel: {
+                                    enabled: true,
+                                    speed: 0.1,
+                                },
+                                pinch: {
+                                    enabled: true,
+                                },
+                                mode: 'x',
+                                drag: {
+                                    enabled: true,
+                                    borderColor: 'rgba(0, 0, 0, 0.3)',
+                                    borderWidth: 1,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.1)'
+                                },
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    hover: {
+                        mode: 'nearest',
+                        intersect: false,
                     }
                 }
             });
-    
             console.log(`Gráfico para ${cryptoName} criado com sucesso.`);
         } catch (error) {
             console.error('Erro ao criar gráfico:', error);

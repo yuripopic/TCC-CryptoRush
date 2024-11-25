@@ -190,7 +190,7 @@ def previsao(acao, neurons, batch_size, epochs, nome):
     if dificuldade == 'normal':
         df_semana = forcar_erros(df_semana, 0.50)  # Força erro em 50% das previsões
     elif dificuldade == 'facil':
-        df_semana = forcar_erros(df_semana, 0.77)  # Força erro em 77% das previsões
+        df_semana = forcar_erros(df_semana, 0.75)  # Força erro em 75% das previsões
 
     df_semana.to_csv(f"{caminho_arquivos}\previsão semanal - {nome}.csv")
 
