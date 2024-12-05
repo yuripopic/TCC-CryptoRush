@@ -664,9 +664,12 @@ def get_lucro_bot():
             with open(TRANSACOES_BOT_PATH, 'r') as file:
                 reader = csv.DictReader(file)
                 for row in reader:
-                    if row['moeda'] == moeda:
+                    if row['moeda'] == moeda and row['tipo'] == 'Compra':
                         valor_investido += float(row['valor'])
                         quantidade += float(row['quantidade'])
+                    elif row['moeda'] == moeda and row['tipo'] == 'Venda':
+                        valor_investido -= float(row['valor'])
+                        quantidade -= float(row['quantidade'])
 
         # Pega a semana atual
         semana_atual = get_semana_atual()
