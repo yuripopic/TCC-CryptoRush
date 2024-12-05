@@ -1,0 +1,3 @@
+BNB,0
+Ethereum,0.0
+Bitcoin,2.6353863740702

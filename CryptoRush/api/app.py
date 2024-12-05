@@ -21,7 +21,6 @@ ANO_PATH = os.path.join(BASE_DIR, 'data/ano.txt')
 DIFICULDADE_PATH = os.path.join(BASE_DIR, 'data/dificuldade.txt')
 SEMANA_PATH = os.path.join(BASE_DIR, 'data/semana.txt')
 MAX_DATE_PATH = os.path.join(BASE_DIR, 'data/maxDate.txt')
-PREVISAO_SIMULADOR_PATH = os.path.join(BASE_DIR, 'Codigo/previsao_simulador.py')
 
 @app.route('/get-saldo', methods=['GET'])
 def get_saldo():
@@ -901,14 +900,13 @@ def get_lucros():
 @app.route('/executar-previsao', methods=['POST'])
 def executar_previsao():
     try:
-        result = subprocess.run(["python", PREVISAO_SIMULADOR_PATH], capture_output=True, text=True)
-
-        if result.returncode == 0:
-            return jsonify({"success": True, "message": "Script executado com sucesso."})
-        else:
-            return jsonify({"success": False, "message": result.stderr}), 500
-    except Exception as e:
-        return jsonify({"success": False, "message": str(e)}), 500
+        script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../Codigo/previsao_simulador.py')
+        subprocess.run(['python', script_path], check=True)
+        return jsonify({"message": "Script executado com sucesso."}), 200
+    except subprocess.CalledProcessError as e:
+        return jsonify({"error": f"Erro ao executar o script: {str(e)}"}), 500
+    except Exception as ex:
+        return jsonify({"error": f"Erro inesperado: {str(ex)}"}), 500
 
 @app.route('/get-ano', methods=['GET'])
 def get_ano_rota():

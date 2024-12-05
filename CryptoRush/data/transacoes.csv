@@ -1,1 +1,6 @@
 tipo,valor,quantidade,moeda
+Compra,6000,0.8333564821245034,Bitcoin
+Compra,6000,45.88910133843212,Ethereum
+Compra,6000,437.95620437956205,BNB
+Compra,8000,0.8323102852743504,Bitcoin
+Venda,14000,1.456542999230113,Bitcoin

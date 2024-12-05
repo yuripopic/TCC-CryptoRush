@@ -32,9 +32,20 @@ document.addEventListener('DOMContentLoaded', async function () {
             if (data.error) {
                 console.error('Erro ao buscar a semana:', data.error);
             } else {
-                console.log('Semana atual:', data.semana);
-                const dataSpan = document.querySelector('.status span:nth-child(2)');
-                dataSpan.textContent = `Data: Semana ${data.semana}`;
+                if (data.semana > 50) {
+                    Swal.fire({
+                        title: 'Simulação Encerrada!',
+                        text: 'A simulação atingiu a data limite (50 semanas). Você será redirecionado ao menu.',
+                        icon: 'info',
+                        confirmButtonText: 'Ok'
+                    }).then(() => {
+                        window.location.href = 'Menu.html';
+                    });
+                } else {
+                    console.log('Semana atual:', data.semana);
+                    const dataSpan = document.querySelector('.status span:nth-child(2)');
+                    dataSpan.textContent = `Data: Semana ${data.semana}`;
+                }
             }
         } catch (error) {
             console.error('Erro ao buscar a semana:', error);
@@ -752,8 +763,10 @@ function addTransaction(type, valor, quantidade, moeda) {
     
                 transacoes.forEach(transacao => {
                     const { tipo, valor, quantidade, moeda } = transacao;
+                    const quantidadeFormatada = parseFloat(quantidade).toFixed(3); // Limita a quantidade a 3 casas decimais
+                    const valorFormatado = parseFloat(valor).toFixed(2); // Mantém o valor em 2 casas decimais
                     const transacaoElement = document.createElement('p');
-                    transacaoElement.textContent = `${tipo}: ${quantidade} ${moeda} por US$ ${valor}`;
+                    transacaoElement.textContent = `${tipo}: ${quantidadeFormatada} ${moeda} por US$ ${valorFormatado}`;
                     historyDiv.appendChild(transacaoElement);
                 });
     
@@ -764,7 +777,7 @@ function addTransaction(type, valor, quantidade, moeda) {
         } catch (error) {
             console.error('Erro ao buscar as transações:', error);
         }
-    }
+    }    
     
     async function verificarAnoEAtualizarSelect() {
         try {

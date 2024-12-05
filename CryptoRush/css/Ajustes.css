@@ -150,6 +150,7 @@ label {
 #carregamento h1 {
     font-size: 24px;
     animation: pisca 1s infinite;
+    text-align: center;
 }
 
 @keyframes pisca {
@@ -160,3 +161,4 @@ label {
         opacity: 0.5;
     }
 }
+
