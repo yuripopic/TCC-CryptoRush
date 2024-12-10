@@ -386,32 +386,37 @@ def salvar_semana():
 @app.route('/get-semana', methods=['GET'])
 def get_semana():
     try:
+        semana = 1
+        ano = get_ano()
+
         if os.path.exists(SEMANA_PATH):
             with open(SEMANA_PATH, 'r') as file:
                 semana = int(file.read().strip())
-        else:
-            semana = 1  # Se o arquivo não existir, começa na semana 1
 
-        return jsonify({"semana": semana}), 200
+        # Verifica o limite de semanas com base no ano
+        semana_max = 35 if ano == 2024 else 50
+        return jsonify({"semana": semana, "semana_max": semana_max}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 @app.route('/avancar-data', methods=['POST'])
 def avancar_data():
     try:
-        # Avança a semana atual
         semana_atual = get_semana_atual()
+        
+        # Verifica se a semana atual já atingiu o limite
+        if semana_atual >= 51:
+            return jsonify({
+                "error": "Limite de semanas atingido. Não é possível avançar mais a data."
+            }), 400
+        
+        # Avança a semana normalmente
         nova_semana = semana_atual + 1
         with open(SEMANA_PATH, 'w') as file:
             file.write(str(nova_semana))
         
-        # Decisão do adversário de compra/venda
         resultado_investimentos = decisao_investimento_adversario()
-        if semana_atual != 2:
-            resultado_vendas = decisao_venda_adversario()
-        else:
-            resultado_vendas = "NENHUMA VENDA!"
-            print(resultado_vendas)
+        resultado_vendas = decisao_venda_adversario()
 
         return jsonify({
             "message": "Decisão do adversário tomada e semana avançada.",
@@ -421,7 +426,6 @@ def avancar_data():
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/get-variacao', methods=['POST'])
 def get_variacao():

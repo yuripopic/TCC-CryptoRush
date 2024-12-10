@@ -29,29 +29,37 @@ document.addEventListener('DOMContentLoaded', async function () {
                 headers: { 'Content-Type': 'application/json' }
             });
             const data = await response.json();
+    
             if (data.error) {
                 console.error('Erro ao buscar a semana:', data.error);
-            } else {
-                if (data.semana > 50) {
-                    Swal.fire({
-                        title: 'Simulação Encerrada!',
-                        text: 'A simulação atingiu a data limite (50 semanas). Você será redirecionado ao menu.',
-                        icon: 'info',
-                        confirmButtonText: 'Ok'
-                    }).then(() => {
-                        window.location.href = 'Menu.html';
-                    });
-                } else {
-                    console.log('Semana atual:', data.semana);
-                    const dataSpan = document.querySelector('.status span:nth-child(2)');
-                    dataSpan.textContent = `Data: Semana ${data.semana}`;
+                return;
+            }
+    
+            const semanaAtual = data.semana;
+            const semanaMaxima = data.semana_max;
+    
+            const dataSpan = document.querySelector('.status span:nth-child(2)');
+            dataSpan.textContent = `Data: Semana ${semanaAtual}`;
+    
+            if (semanaAtual >= semanaMaxima) {
+                Swal.fire({
+                    title: 'Simulação Encerrada!',
+                    text: `A simulação atingiu a data limite de ${semanaMaxima} semanas.`,
+                    icon: 'info',
+                    confirmButtonText: 'Ok'
+                });
+    
+                // Desabilita o botão de avançar semana
+                const advanceButton = document.querySelector('.advance-date');
+                if (advanceButton) {
+                    advanceButton.disabled = true;
                 }
             }
         } catch (error) {
             console.error('Erro ao buscar a semana:', error);
         }
-    }    
-    
+    }
+
     // Chama a função para carregar a semana quando a página for carregada
     await getSemana();
 
@@ -656,9 +664,21 @@ function addTransaction(type, valor, quantidade, moeda) {
         localStorage.setItem('currentChart', currentChart);  // Salva no localStorage
         updateProfitChart();
     });
-    document.querySelector('.advance-date').addEventListener('click', () =>{
+    document.querySelector('.advance-date').addEventListener('click', async () => {
+    const semanaResponse = await fetch('http://127.0.0.1:5000/get-semana');
+    const semanaData = await semanaResponse.json();
+    
+    if (semanaData.semana < semanaData.semana_max) {
         advanceDate();
-    });
+    } else {
+        Swal.fire({
+            title: 'Limite Atingido!',
+            text: 'Não é possível avançar além da semana máxima.',
+            icon: 'warning',
+            confirmButtonText: 'Entendido'
+        });
+    }
+});
 
     // Inicia carregando os dados da data máxima
     loadMaxDate();
