@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 console.error('Erro ao buscar saldo:', data.error);
             } else {
                 const caixaAtualSpan = document.querySelector('.left span');
-                caixaAtualSpan.textContent = `Caixa atual: US$ ${parseFloat(data.saldo).toFixed(2)}`;
+                caixaAtualSpan.textContent = `Caixa atual: USD$ ${parseFloat(data.saldo).toFixed(2)}`;
             }
         } catch (error) {
             console.error('Erro ao buscar saldo:', error);
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${rendimento.moeda}</td>
-                        <td>US$ ${valorAplicadoAtualizado.toFixed(2)}</td>
+                        <td>USD$ ${valorAplicadoAtualizado.toFixed(2)}</td>
                         <td>${rendimento.quantidade.toFixed(8)}</td>
                         <td>${variacaoSemanal}</td>
                     `;
@@ -151,7 +151,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
                 // Atualizar o valor do lucro total na interface
                 const lucroSpan = document.querySelector('.center span');
-                lucroSpan.textContent = `Lucro: US$ ${lucroTotal.toFixed(2)}`;
+                lucroSpan.textContent = `Lucro: USD$ ${lucroTotal.toFixed(2)}`;
             } else {
                 console.error('Dados inesperados recebidos (não é uma array):', rendimentos);
             }
